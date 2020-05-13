@@ -18,7 +18,7 @@ class IMG
 {
 private:
 
-	double  *imageDoubleArr;
+	//double  *imageDoubleArr;
 	//Pixel **pixels;
 	bool IS_DEBUG = true;
 	vector<Pixel*> *list;
@@ -55,8 +55,13 @@ public:
 		this->height = h;
 		this->list = list;
 	}
+
 	IMG() {
 
+	}
+
+	~IMG() {
+		this->deletePixels();
 	}
 
 	enum edgeEffect { BLACK, COPY, MIRROR, SPHERE };

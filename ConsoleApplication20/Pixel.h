@@ -28,6 +28,9 @@ public:
 		this->alpha = a;
 
 	}
+	~Pixel() {
+		
+	}
 
 	Pixel* copy() {
 		Pixel* new_object = new Pixel();

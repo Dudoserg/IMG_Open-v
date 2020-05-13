@@ -180,12 +180,13 @@ int main(int argc, char** argv)
 	if (isHarris) {
 		Harris* harris = new Harris(img);
 		IMG* harris_result = harris->calculate(3, "_base", dir + "/result");
+		delete harris_result;
 	}
-	if (isHarris) {
+	/*if (isHarris) {
 		IMG* img2 = new IMG(dir + "/" + "_Lena_turn.jpg");
 		Harris* harris = new Harris(img2);
 		IMG* harris_result = harris->calculate(3, "_turn", dir + "/result");
-	}
+	}*/
 
 
 	cout << "FULL TIME : " << (clock() - start_time) / 1000.0 << "\n\n\n";

@@ -42,8 +42,17 @@ public:
 
 	IMG* calculate(int windowSize, string suffix, string dir) {
 
-		img = img->gaussFilter_separable(1.5);
-		img = img->normalize_COLOR();
+		int a = 2;
+		int b = 2;
+		IMG* img_gaussFilter_separable = img->gaussFilter_separable(1.5);
+		//delete img;
+
+		IMG* img = img_gaussFilter_separable->normalize_COLOR();
+		delete img_gaussFilter_separable;
+
+
+		
+
 
 		// вычисляем градиент и производные
 		{
@@ -90,6 +99,9 @@ public:
 			}
 		}
 
+		delete img_Sobol_X;
+		delete img_Sobol_Y;
+
 		//----------------------------------------------------------------------------------------------------
 		// Ищем точки с большим откликом L_min > Threshold
 		// сортируем по L_min
@@ -106,7 +118,7 @@ public:
 			return first->L_min < second->L_min;
 		});
 
-		// получаем значение
+		// получаем значение Threshold
 		HarrisPixel* top_X = harrisPixelList_sortedLmin->at((int)(harrisPixelList_sortedLmin->size() * 0.9));
 		//this.printFile(harrisPixelList_sortedLmin, "0.85_");
 		cout << ("====================================top_X===========================") << endl;
@@ -182,32 +194,63 @@ public:
 
 		newImg->saveImage_GRAY("values" + suffix + ".jpg", dir);
 
-		{
+		
 			IMG* img_all = drawRedPoint(harrisPixelList);
-			img_all = img_all->normalize_COLOR();
+			IMG* img_all_normalize = img_all->normalize_COLOR();
 			img_all->saveImage_COLOR("all_" + suffix + ".jpg", dir);
-		}
+		
 		//----------------------------------------------------------------------------------------------------
 		// оставляем POINT_COUNT_TOP_POWERFUL сильнейших точек
 		// сортируем по L_min
-		{
+		
 			vector<HarrisPixel*>* harrisPixels_POWERFUL = topPowerful(harrisPixelList);
 			vector<pair<int, int>*>* coordinate_POWERFUL = getCoordinate(harrisPixels_POWERFUL);
 			// Рисуем красные точки на картинке
 			IMG* img_powerful = drawRedPoint(harrisPixels_POWERFUL);
-			img_powerful = img_powerful->normalize_COLOR();
+			IMG* img_powerful_normalize = img_powerful->normalize_COLOR();
 			img_powerful->saveImage_COLOR("top_" + to_string(POINT_COUNT_TOP_POWERFUL) + suffix + ".jpg", dir );
-		}
+		
 
 		//----------------------------------------------------------------------------------------------------
 		// Adaptive non-maximum suppression
-		{
+		
 			vector<HarrisPixel*>* harrisPixels_ANMS = ANMS(harrisPixelList);
 			vector<pair<int, int>*>* coordinate_ANMS = getCoordinate(harrisPixels_ANMS);
 			// Рисуем красные точки на картинке
 			IMG* img_ANMS = drawRedPoint(harrisPixels_ANMS);
-			img_ANMS = img_ANMS->normalize_COLOR();
+			IMG*  img_ANMS_normalize = img_ANMS->normalize_COLOR();
 			img_ANMS->saveImage_COLOR("ANMS_" + to_string(POINT_COUNT_TOP_ANMS) + suffix + ".jpg", dir);
+
+			
+			
+			delete img;
+
+			delete newImg;
+
+			delete img_all;
+			delete img_all_normalize;
+
+			delete img_powerful;
+			delete img_powerful_normalize;
+
+			delete img_ANMS;
+			delete img_ANMS_normalize;
+
+			for (int i = 0; i < harrisPixelList->size(); i++) {
+				if(harrisPixelList->at(i))
+					delete harrisPixelList->at(i);
+			}
+			for (int i = 0; i < harrisPixels_POWERFUL->size(); i++) {
+				if(harrisPixels_POWERFUL->at(i))
+					delete harrisPixels_POWERFUL->at(i);
+			}
+			for (int i = 0; i < harrisPixels_ANMS->size(); i++) {
+				if(harrisPixels_ANMS->at(i))
+					delete harrisPixels_ANMS->at(i);
+			}
+
+			indexForRemoveLocal->clear();
+			delete indexForRemoveLocal;
 
 			//           printCoordinate(coordinate_ANMS.stream()
 			//                   .sorted((o1, o2) -> o1.getKey().compareTo(o2.getKey()))
@@ -216,7 +259,7 @@ public:
 			//           printCoordinate(coordinate_ANMS.stream()
 			//                   .sorted((o1, o2) -> o1.getValue().compareTo(o2.getValue()))
 			//                   .collect(Collectors.toList()), "coord_anms_y");
-		}
+		
 		return this->img;
 	}
 
@@ -303,10 +346,11 @@ public:
 	}
 
 	vector<HarrisPixel*>* ANMS(vector<HarrisPixel*>* harrisPixelList) {
+
 		vector<HarrisPixel*>* harrisPixelList_COPY = new  vector<HarrisPixel*>();
 		for (int i = 0; i < harrisPixelList->size(); i++) {
 			HarrisPixel* harrisPixel = harrisPixelList->at(i);
-			harrisPixelList_COPY->push_back(harrisPixel);
+			harrisPixelList_COPY->push_back(harrisPixel->copy());
 		}
 
 

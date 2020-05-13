@@ -75,9 +75,11 @@ void IMG::initImageDoubleArr()
 
 void IMG::deletePixels()
 {
-	//    for(int i = 0 ; i < this->list->size(); ++i)
-	//        delete (*list)[i];
+	for(int i = 0 ; i < this->list->size(); ++i)
+	    delete (*list)[i];
+
 	this->list->clear();
+	
 	delete this->list;
 
 }
