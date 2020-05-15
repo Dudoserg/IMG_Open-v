@@ -50,16 +50,21 @@ public:
 			for (int i = 0; i < listPoints->size(); i++) {
 				delete listPoints->at(i);
 			}
-			this->listPoints->clear();
-			this->listPoints->shrink_to_fit();
+			if (this->listPoints->size() != 0) {
+				this->listPoints->clear();
+				this->listPoints->shrink_to_fit();
+			}
 		}
 
 		{
 			for (int i = 0; i < descriptorList->size(); i++) {
 				delete descriptorList->at(i);
 			}
-			this->descriptorList->clear();
-			this->descriptorList->shrink_to_fit();
+			if (this->descriptorList->size() != 0) {
+				this->descriptorList->clear();
+				this->descriptorList->shrink_to_fit();
+			}
+
 		}
 #endif // CLEAR_MEMORY
 	}
