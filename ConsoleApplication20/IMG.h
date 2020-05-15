@@ -1,6 +1,7 @@
 #pragma once
 #define _USE_MATH_DEFINES
 
+#include "DEF.h"
 #include "Pixel.h"
 
 #include "opencv2/imgproc.hpp"
@@ -26,9 +27,7 @@ private:
 
 
 
-	// Создать картинку из массива пикселей
-	Mat createImage_GRAY();
-	Mat createImage_COLOR();
+
 
 public:
 	Mat image;
@@ -61,7 +60,10 @@ public:
 	}
 
 	~IMG() {
+#ifdef CLEAR_MEMORY
 		this->deletePixels();
+		this->image.release();
+#endif // DEBUG_MODE
 	}
 
 	enum edgeEffect { BLACK, COPY, MIRROR, SPHERE };
@@ -78,12 +80,20 @@ public:
 
 	IMG * downSample();
 
+	
 	void deletePixels();
+
+
+	// Создать картинку из массива пикселей
+	Mat createImage_GRAY();
+	Mat createImage_COLOR();
+
 
 	// Сохраняет картирку
 	void saveQimageToFile(Mat img, string fileName, string dir);
 	void saveImage_GRAY(string fileName, string dir);
 	void saveImage_COLOR(string fileName, string dir);
+
 
 
 	// Применить фильтр к изображению
@@ -212,4 +222,78 @@ public:
 		return new_object;
 	}
 
+
+
+	static IMG* atan(IMG* imgX, IMG* imgY, int width, int height)
+	{
+
+		vector<Pixel*>* pixelX = imgX->list;
+		vector<Pixel*>* pixelY = imgY->list;
+		vector<Pixel*>* result_XY = new vector<Pixel*>();
+
+		for (int i = 0; i < width * height; i++)
+			result_XY->push_back(NULL);
+
+		for (int i = 0; i < height; i++) {
+			for (int j = 0; j < width; j++) {
+				int index = i * width + j;
+				double val_X = (*pixelX)[index]->gray;
+				double val_Y = (*pixelY)[index]->gray;
+				//double sq = sqrt(val_X * val_X + val_Y * val_Y);
+				double sq = atan2(val_X, val_Y);
+
+				(*result_XY)[index] = new Pixel(sq);
+			}
+		}
+
+		return new IMG(width, height, result_XY);
+	}
+
+
+	static IMG* sobolGradient(IMG* imgX, IMG* imgY, int width, int height)
+	{
+
+		vector<Pixel*>* pixelX = imgX->list;
+		vector<Pixel*>* pixelY = imgY->list;
+		vector<Pixel*>* result_XY = new vector<Pixel*>();
+
+		for (int i = 0; i < width * height; i++)
+			result_XY->push_back(NULL);
+
+		for (int i = 0; i < height; i++) {
+			for (int j = 0; j < width; j++) {
+				int index = i * width + j;
+				double val_X = (*pixelX)[index]->gray;
+				double val_Y = (*pixelY)[index]->gray;
+				double sq = sqrt(val_X * val_X + val_Y * val_Y);
+				//sq = qMax(qMin(sq, 255.0), 0.0);
+				(*result_XY)[index] = new Pixel(sq);
+			}
+		}
+
+		return new IMG(width, height, result_XY);
+	}
+
+
+
+	// Поме
+	void setMatToPixelsArray(Mat mat) {
+
+
+		for (int row = 0; row < this->height; ++row) {
+			for (int col = 0; col < this->width; ++col) {
+				Vec3b& color = (mat.at<Vec3b>(row, col));
+				int blue = color[0] ;
+				int green = color[1];
+				int red = color[2];
+				int gray = ((double)red * 0.213) + ((double)green * 0.715) + ((double)blue * 0.0722);
+
+				list->at(row * this->width + col)->red = red / 255.0;
+				list->at(row * this->width + col)->green = green / 255.0;
+				list->at(row * this->width + col)->blue = blue / 255.0;
+				list->at(row * this->width + col)->gray = gray / 255.0;
+			}
+		}
+
+	}
 };

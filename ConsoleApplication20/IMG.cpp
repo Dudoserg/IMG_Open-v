@@ -2,7 +2,7 @@
 
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
-#include<opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include <windows.h>
 #include <string>
 #include <iostream>
@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "IMG.h"
+#include "DEF.h"
 
 using namespace std;
 using namespace cv;
@@ -28,14 +29,14 @@ void IMG::setImage(Mat value)
 	this->width = value.cols;
 }
 
-vector<Pixel*> *IMG::getPixels() const
+vector<Pixel*>* IMG::getPixels() const
 {
 	return this->list;
 }
 
 
 
-void IMG::setPixels(vector<Pixel*> *value)
+void IMG::setPixels(vector<Pixel*>* value)
 {
 	int size = this->width * this->height;
 	//    for(int i=0; i < size; ++i)
@@ -52,18 +53,18 @@ void IMG::setPixels(vector<Pixel*> *value)
 // Создаем одномерный массив **Pixel, в котором храним цвет (Приведя его к промежутку [0...1])
 void IMG::initImageDoubleArr()
 {
-	Pixel **pixels = new Pixel*[this->width * this->height];
+	Pixel** pixels = new Pixel * [this->width * this->height];
 
 	for (int row = 0; row < this->height; ++row) {
 		for (int col = 0; col < this->width; ++col) {
-			Vec3b & color = (this->image.at<Vec3b>(row, col));
+			Vec3b& color = (this->image.at<Vec3b>(row, col));
 			int blue = color[0];
 			int green = color[1];
 			int red = color[2];
 			//int gray = ((double)red * 0.2125) + ((double)green * 0.7154) + ((double)blue * 0.0721);
 			int gray = ((double)red * 0.213) + ((double)green * 0.715) + ((double)blue * 0.0722);
 
-			list->push_back( new Pixel( (red / 255.0), (green / 255.0), (blue / 255.0), (gray / 255.0), gray / 255.0 ));
+			list->push_back(new Pixel((red / 255.0), (green / 255.0), (blue / 255.0), (gray / 255.0), gray / 255.0));
 		}
 	}
 }
@@ -75,13 +76,15 @@ void IMG::initImageDoubleArr()
 
 void IMG::deletePixels()
 {
-	for(int i = 0 ; i < this->list->size(); ++i)
-	    delete (*list)[i];
+#ifdef CLEAR_MEMORY
+	for (int i = 0; i < this->list->size(); ++i)
+		delete (*list)[i];
 
 	this->list->clear();
-	
-	delete this->list;
+	this->list->shrink_to_fit();
 
+	delete this->list;
+#endif // CLEAR_MEMORY
 }
 
 
@@ -122,17 +125,17 @@ void IMG::saveImage_COLOR(string fileName, string dir)
  * @param e     краевой эффект
  * @return      новый массив пикселей
  */
-IMG *IMG::cross_COLOR(vector<vector<double> > &matrix, double div, edgeEffect e)
+IMG* IMG::cross_COLOR(vector<vector<double> >& matrix, double div, edgeEffect e)
 {
-	vector<Pixel*> *pixel = this->list;
+	vector<Pixel*>* pixel = this->list;
 
 
 	//    Pixel **result =  new Pixel*[this->width * this->height];
 
-	vector<Pixel*> *result = new vector<Pixel*>();
+	vector<Pixel*>* result = new vector<Pixel*>();
 	for (int i = 0; i < this->width * this->height; i++)
 		result->push_back(new Pixel(
-		(*pixel)[i]->red,
+			(*pixel)[i]->red,
 			(*pixel)[i]->green,
 			(*pixel)[i]->blue,
 			(*pixel)[i]->alpha,
@@ -213,17 +216,17 @@ IMG *IMG::cross_COLOR(vector<vector<double> > &matrix, double div, edgeEffect e)
  * @param e     краевой эффект
  * @return      новый массив пикселей
  */
-IMG *IMG::cross_GRAY(vector<vector<double> > &matrix, double div, edgeEffect e)
+IMG* IMG::cross_GRAY(vector<vector<double> >& matrix, double div, edgeEffect e)
 {
-	vector<Pixel*> *pixel = this->list;
+	vector<Pixel*>* pixel = this->list;
 
 
 	//    Pixel **result =  new Pixel*[this->width * this->height];
 
-	vector<Pixel*> *result = new vector<Pixel*>();
+	vector<Pixel*>* result = new vector<Pixel*>();
 	for (int i = 0; i < this->width * this->height; i++)
 		result->push_back(new Pixel(
-		(*pixel)[i]->red,
+			(*pixel)[i]->red,
 			(*pixel)[i]->green,
 			(*pixel)[i]->blue,
 			(*pixel)[i]->alpha,
@@ -280,11 +283,11 @@ IMG *IMG::cross_GRAY(vector<vector<double> > &matrix, double div, edgeEffect e)
 
 
 
-IMG  *IMG::normalize_COLOR()
+IMG* IMG::normalize_COLOR()
 {
 	unsigned int start_time = clock();
-	vector<Pixel*> *pixel = this->list;
-	vector<Pixel*> *result = new vector<Pixel*>();
+	vector<Pixel*>* pixel = this->list;
+	vector<Pixel*>* result = new vector<Pixel*>();
 	for (int i = 0; i < this->width * this->height; i++) {
 		result->push_back(new Pixel(
 			(*pixel)[i]->red,
@@ -348,11 +351,11 @@ IMG  *IMG::normalize_COLOR()
 	return new IMG(this->width, this->height, result);
 }
 
-IMG *IMG::normalize_GRAY()
+IMG* IMG::normalize_GRAY()
 {
 	unsigned int start_time = clock();
-	vector<Pixel*> *pixel = this->list;
-	vector<Pixel*> *result = new vector<Pixel*>();
+	vector<Pixel*>* pixel = this->list;
+	vector<Pixel*>* result = new vector<Pixel*>();
 	for (int i = 0; i < this->width * this->height; i++) {
 		result->push_back(new Pixel(
 			(*pixel)[i]->red,
@@ -393,7 +396,7 @@ IMG *IMG::normalize_GRAY()
  * @param e Краевой эффект
  * @return Новый массив пикселей
  */
-IMG *IMG::sobelDerivativeX(edgeEffect e)
+IMG* IMG::sobelDerivativeX(edgeEffect e)
 {
 	unsigned int start_time = clock();
 	vector<vector<double>> matrix_sobolX({
@@ -403,7 +406,7 @@ IMG *IMG::sobelDerivativeX(edgeEffect e)
 		});
 
 	//    Pixel **result_X = this->cross(pixel, matrix_sobolX, 1.0, e);
-	IMG *result_X = this->cross_GRAY(matrix_sobolX, 1.0, e);
+	IMG* result_X = this->cross_GRAY(matrix_sobolX, 1.0, e);
 	//this->normalize(result_X);
 	cout << "sobelDerivativeX : " << (clock() - start_time) / 1000.0 << "\n";
 	return result_X;
@@ -414,7 +417,7 @@ IMG *IMG::sobelDerivativeX(edgeEffect e)
  * @param e Краевой эффект
  * @return Новый массив пикселей
  */
-IMG *IMG::sobelDerivativeY(IMG::edgeEffect e)
+IMG* IMG::sobelDerivativeY(IMG::edgeEffect e)
 {
 	unsigned int start_time = clock();
 	vector<vector<double>> matrix_sobolY({
@@ -423,7 +426,7 @@ IMG *IMG::sobelDerivativeY(IMG::edgeEffect e)
 		vector<double>({-1, -2, -1})
 		});
 	//    Pixel **result_Y = this->cross(pixel, matrix_sobolY, 1.0, e);
-	IMG*result_Y = this->cross_GRAY(matrix_sobolY, 1.0, e);
+	IMG* result_Y = this->cross_GRAY(matrix_sobolY, 1.0, e);
 	//this->normalize(result_Y);
 	cout << "sobelDerivativeY : " << (clock() - start_time) / 1000.0 << "\n";
 	return result_Y;
@@ -435,12 +438,12 @@ IMG *IMG::sobelDerivativeY(IMG::edgeEffect e)
  * @param pixelY
  * @return
  */
-IMG *IMG::sobelGradient(IMG *imgX, IMG *imgY)
+IMG* IMG::sobelGradient(IMG* imgX, IMG* imgY)
 {
 	unsigned int start_time = clock();
-	vector<Pixel*> *pixelX = imgX->list;
-	vector<Pixel*> *pixelY = imgY->list;
-	vector<Pixel*> *result_XY = new vector<Pixel*>();
+	vector<Pixel*>* pixelX = imgX->list;
+	vector<Pixel*>* pixelY = imgY->list;
+	vector<Pixel*>* result_XY = new vector<Pixel*>();
 
 	for (int i = 0; i < this->width * this->height; i++)
 		result_XY->push_back(NULL);
@@ -459,7 +462,7 @@ IMG *IMG::sobelGradient(IMG *imgX, IMG *imgY)
 	return new IMG(this->width, this->height, result_XY);
 }
 
-IMG *IMG::gaussFilter(double sigma)
+IMG* IMG::gaussFilter(double sigma)
 {
 	unsigned int start_time = clock();
 	vector<vector<double>> matrix_gauss;
@@ -490,13 +493,13 @@ IMG *IMG::gaussFilter(double sigma)
 	}
 
 	//    Pixel **gauss_result  = this->cross(this->pixels, matrix_gauss, 1.0, IMG::edgeEffect::BLACK);
-	IMG *gauss_result = this->cross_COLOR(matrix_gauss, 1.0, IMG::edgeEffect::BLACK);
+	IMG* gauss_result = this->cross_COLOR(matrix_gauss, 1.0, IMG::edgeEffect::BLACK);
 
 	cout << "gaussFilter : " << (clock() - start_time) / 1000.0 << "\n";
 	return gauss_result;
 }
 
-IMG *IMG::gaussFilter_separable(double sigma)
+IMG* IMG::gaussFilter_separable(double sigma)
 {
 	vector<vector<double>> matrix_gauss;
 	unsigned int start_time = clock();
@@ -517,7 +520,7 @@ IMG *IMG::gaussFilter_separable(double sigma)
 
 
 	//    Pixel **gauss_result_row;
-	IMG * gauss_result_row;
+	IMG* gauss_result_row;
 	gauss_result_row = this->cross_COLOR(matrix_gauss, 1.0, IMG::edgeEffect::BLACK);
 
 
@@ -532,7 +535,7 @@ IMG *IMG::gaussFilter_separable(double sigma)
 		matrix_gauss.push_back(tmp);
 	}
 	//    Pixel **gauss_result_col;
-	IMG * gauss_result_col;
+	IMG* gauss_result_col;
 	gauss_result_col = gauss_result_row->cross_COLOR(matrix_gauss, 1.0, IMG::edgeEffect::BLACK);
 
 	// TODO
@@ -547,7 +550,7 @@ IMG *IMG::gaussFilter_separable(double sigma)
 
 Mat IMG::createImage_GRAY()
 {
-	vector<Pixel*> *pixel = this->list;
+	vector<Pixel*>* pixel = this->list;
 
 	int new_img_size_row = this->height;
 	int new_img_size_col = this->width;
@@ -555,7 +558,7 @@ Mat IMG::createImage_GRAY()
 
 	for (int row = 0; row < new_img.rows; row++) {
 		for (int col = 0; col < new_img.cols; col++) {
-			Vec3b & color = new_img.at<Vec3b>(row, col);
+			Vec3b& color = new_img.at<Vec3b>(row, col);
 			color[2] = (*pixel)[row * this->width + col]->gray * 255.0;
 			color[1] = (*pixel)[row * this->width + col]->gray * 255.0;
 			color[0] = (*pixel)[row * this->width + col]->gray * 255.0;
@@ -567,7 +570,7 @@ Mat IMG::createImage_GRAY()
 
 Mat IMG::createImage_COLOR()
 {
-	vector<Pixel*> *pixel = this->list;
+	vector<Pixel*>* pixel = this->list;
 
 	int new_img_size_row = this->height;
 	int new_img_size_col = this->width;
@@ -575,7 +578,7 @@ Mat IMG::createImage_COLOR()
 
 	for (int row = 0; row < new_img.rows; row++) {
 		for (int col = 0; col < new_img.cols; col++) {
-			Vec3b & color = new_img.at<Vec3b>(row, col);
+			Vec3b& color = new_img.at<Vec3b>(row, col);
 			color[2] = (*pixel)[row * this->width + col]->red * 255.0;
 			color[1] = (*pixel)[row * this->width + col]->green * 255.0;
 			color[0] = (*pixel)[row * this->width + col]->blue * 255.0;
@@ -588,11 +591,11 @@ Mat IMG::createImage_COLOR()
 
 
 
-IMG *IMG::downSample()
+IMG* IMG::downSample()
 {
 	int new_width = this->width / 2;
 	int new_height = this->height / 2;
-	vector<Pixel*> *new_pixels = new vector<Pixel*>();
+	vector<Pixel*>* new_pixels = new vector<Pixel*>();
 
 	for (int row = 0; row < new_height; row++) {
 		for (int col = 0; col < new_width; col++) {

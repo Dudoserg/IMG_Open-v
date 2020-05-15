@@ -171,9 +171,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConsoleApplication20.cpp" />
+    <ClCompile Include="Descriptors.cpp" />
     <ClCompile Include="IMG.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ConsoleApplication20.h" />
+    <ClInclude Include="DEF.h" />
+    <ClInclude Include="Descriptor.h" />
+    <ClInclude Include="Descriptors.h" />
     <ClInclude Include="Harris.h" />
     <ClInclude Include="HarrisPixel.h" />
     <ClInclude Include="IMG.h" />

@@ -1,4 +1,5 @@
 #pragma once
+#include "DEF.h"
 #include "IMG.h"
 #include "HarrisPixel.h"
 #include <string>
@@ -21,12 +22,13 @@ public:
 
 	// коилчество уникальных точек
 
-	int POINT_COUNT_HARRIS = 100;
+	int POINT_COUNT_HARRIS = 150;
 
-	int POINT_COUNT_TOP_POWERFUL = 200;
-	int POINT_COUNT_TOP_ANMS = 200;
+	int POINT_COUNT_TOP_POWERFUL = 150;
+	int POINT_COUNT_TOP_ANMS = 150;
 
 	vector<pair<int, int>*>* indexUnicalPoint = new vector<pair<int, int>*>;
+
 
 	///////////////////////
 	IMG* img_Sobol_X;
@@ -35,8 +37,31 @@ public:
 	IMG* img_Sobol_Y;
 	IMG* img_normalized_Sobol_Y;
 
+
+
+	IMG* img_Atan2;
+	IMG* img_Atan2_normalized;
+	IMG* img_gradient;
+
+
 	Harris(IMG *img) {
 		this->img = img;
+	};
+	~Harris() {
+#ifdef CLEAR_MEMORY
+		delete img_Atan2;
+		delete img_Atan2_normalized;
+		delete img_gradient;
+
+		for (int i = 0; i < indexUnicalPoint->size(); i++) {
+			delete indexUnicalPoint->at(i);
+		}
+		indexUnicalPoint->clear();
+		indexUnicalPoint->shrink_to_fit();
+		delete indexUnicalPoint;
+#endif // CLEAR_MEMORY
+
+	
 	};
 
 
@@ -48,7 +73,9 @@ public:
 		//delete img;
 
 		IMG* img = img_gaussFilter_separable->normalize_COLOR();
+#ifdef CLEAR_MEMORY
 		delete img_gaussFilter_separable;
+#endif // CLEAR_MEMORY
 
 
 		
@@ -61,6 +88,11 @@ public:
 
 			img_Sobol_Y = img->sobelDerivativeY(IMG::edgeEffect::BLACK);
 			img_normalized_Sobol_Y = img_Sobol_Y;
+
+			img_Atan2 = IMG::atan(img_Sobol_X, img_Sobol_Y, img_Sobol_X->width, img_Sobol_X->height);
+			img_Atan2_normalized = img_Atan2->normalize_COLOR();
+
+			img_gradient = IMG::sobolGradient(img_Sobol_X, img_Sobol_Y, img_Sobol_X->width, img_Sobol_X->height);
 		}
 
 		vector<HarrisPixel*>* harrisPixelList = new vector<HarrisPixel*>;
@@ -99,8 +131,11 @@ public:
 			}
 		}
 
+#ifdef CLEAR_MEMORY
 		delete img_Sobol_X;
 		delete img_Sobol_Y;
+#endif // CLEAR_MEMORY
+		
 
 		//----------------------------------------------------------------------------------------------------
 		// Ищем точки с большим откликом L_min > Threshold
@@ -193,16 +228,22 @@ public:
 
 
 		newImg_normalize->saveImage_GRAY("values" + suffix + ".jpg", dir);
+#ifdef CLEAR_MEMORY
 		delete newImg;
 		delete newImg_normalize;
+#endif // CLEAR_MEMORY
+
 		
 		//----------------------------------------------------------------------------------------------------
 		// все найденные точки
 		IMG* img_all = drawRedPoint(harrisPixelList);
 		IMG* img_all_normalize = img_all->normalize_COLOR();
 		img_all_normalize->saveImage_COLOR("all_" + suffix + ".jpg", dir);
+#ifdef CLEAR_MEMORY
 		delete img_all;
 		delete img_all_normalize;
+#endif // CLEAR_MEMORY
+
 
 		//----------------------------------------------------------------------------------------------------
 		// оставляем POINT_COUNT_TOP_POWERFUL сильнейших точек
@@ -215,12 +256,17 @@ public:
 		IMG* img_powerful_normalize = img_powerful->normalize_COLOR();
 		img_powerful_normalize->saveImage_COLOR("top_" + to_string(POINT_COUNT_TOP_POWERFUL) + suffix + ".jpg", dir );
 
+#ifdef CLEAR_MEMORY
 		delete img_powerful;
 		delete img_powerful_normalize;
 		for (int i = 0; i < harrisPixels_POWERFUL->size(); i++) {
 			if (harrisPixels_POWERFUL->at(i))
 				delete harrisPixels_POWERFUL->at(i);
 		}
+		harrisPixels_POWERFUL->clear();
+		harrisPixels_POWERFUL->shrink_to_fit();
+#endif // CLEAR_MEMORY
+
 		//----------------------------------------------------------------------------------------------------
 		// Adaptive non-maximum suppression
 		
@@ -231,23 +277,36 @@ public:
 		IMG*  img_ANMS_normalize = img_ANMS->normalize_COLOR();
 		img_ANMS_normalize->saveImage_COLOR("ANMS_" + to_string(POINT_COUNT_TOP_ANMS) + suffix + ".jpg", dir);
 
+		this->indexUnicalPoint = coordinate_ANMS;
+
+#ifdef CLEAR_MEMORY
 		delete img_ANMS;
 		delete img_ANMS_normalize;
 		for (int i = 0; i < harrisPixels_ANMS->size(); i++) {
 			if (harrisPixels_ANMS->at(i))
 				delete harrisPixels_ANMS->at(i);
 		}
+		harrisPixels_ANMS->clear();
+		harrisPixels_ANMS->shrink_to_fit();
+#endif // CLEAR_MEMORY
+
 
 		//----------------------------------------------------------------------------------------------------
 		// чистим остальную память
 
+#ifdef CLEAR_MEMORY
 		for (int i = 0; i < harrisPixelList->size(); i++) {
-			if(harrisPixelList->at(i))
+			if (harrisPixelList->at(i))
 				delete harrisPixelList->at(i);
 		}
-		
+		harrisPixelList->clear();
+		harrisPixelList->shrink_to_fit();
+
 		indexForRemoveLocal->clear();
+		indexForRemoveLocal->shrink_to_fit();
 		delete indexForRemoveLocal;
+#endif // CLEAR_MEMORY
+
 
 		
 		return this->img;
@@ -308,8 +367,8 @@ public:
 
 		//printFile(harrisPixelList_sortedLmin2, "top300");
 		// получаем значение
-		HarrisPixel* top_X2 = harrisPixelList_sortedLmin2->at(
-			harrisPixelList_sortedLmin2->size() - POINT_COUNT_TOP_POWERFUL);
+		int index = harrisPixelList_sortedLmin2->size() - POINT_COUNT_TOP_POWERFUL;
+		HarrisPixel* top_X2 = harrisPixelList_sortedLmin2->at(index);
 
 
 		// "удаляем" точки где L_min < Threshold
@@ -423,5 +482,11 @@ public:
 		}
 
 		std::cout << "End of program" << std::endl;
+	}
+
+
+
+	vector<pair<int, int>*>* getIndexUnicalPoint() {
+		return this->indexUnicalPoint;
 	}
 };

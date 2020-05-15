@@ -1,5 +1,7 @@
 ﻿#include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+
 #include <opencv2/opencv.hpp>
 #include <windows.h>
 #include <string>
@@ -8,6 +10,9 @@
 
 
 
+
+#include "DEF.h"
+
 #include "IMG.h"
 #include "Octava.h"
 #include "Pyramid_IMG.h"
@@ -15,6 +20,9 @@
 #include "Moravec.h"
 #include "HarrisPixel.h"
 #include "Harris.h"
+#include "Descriptors.h"
+
+
 
 using namespace std;
 using namespace cv;
@@ -43,7 +51,7 @@ vector<Octava*>* testOctavi(IMG* img, string dir, double sigma0, double sigma1, 
 	IMG* img_normalized_first = img_first->normalize_COLOR();
 	img_first->deletePixels();
 
-	img_normalized_first->saveImage_COLOR("c_досгладили.jpg", dir );
+	img_normalized_first->saveImage_COLOR("c_досгладили.jpg", dir);
 
 
 	vector<Octava*>* list_octava = new vector<Octava*>;
@@ -137,25 +145,16 @@ double l_func(vector<Octava*>* list_octava, int x, int y, double sigma, IMG::COL
 	return  needPyramid->img->getColor(y_new * needPyramid->img->width + x_new, color);
 }
 
-
-
-
-
-int main(int argc, char** argv)
-{
-	unsigned int start_time = clock();
-
+void lab3() {
 	string dir = "C:/_img";
 	string filename = "_Lena.jpg";
 
 	IMG* img = new IMG(dir + "/" + filename);
 
-	int asdwq = img->getImage().rows;
-
 
 	IMG* img_normalize = img->normalize_COLOR();
 
-	if(isSaveColor)
+	if (isSaveColor)
 		img_normalize->saveImage_COLOR("color.jpg", dir + "/result");
 
 	if (isSaveGray)
@@ -182,14 +181,119 @@ int main(int argc, char** argv)
 		IMG* harris_result = harris->calculate(3, "_base", dir + "/result");
 		delete harris_result;
 	}
-	/*if (isHarris) {
+	if (isHarris) {
 		IMG* img2 = new IMG(dir + "/" + "_Lena_turn.jpg");
 		Harris* harris = new Harris(img2);
 		IMG* harris_result = harris->calculate(3, "_turn", dir + "/result");
-	}*/
+	}
+}
 
+void lab4() {
+	string dir = "C:/_img/";
+
+
+	String firstPath = dir + "/" + "lenka_2(2).jpg";
+	vector<pair<int, int>*>* first_Harris_indexUnicalPoint;
+	IMG* first_img_Atan2;
+	IMG* first_img_gradient;
+
+	String secondPath = dir + "/" + "lenka_1.jpg";
+	vector<pair<int, int>*>* second_Harris_indexUnicalPoint;
+	IMG* second_img_Atan2;
+	IMG* second_img_gradient;
+
+
+
+	IMG* first_img = new IMG(firstPath);
+
+	/*IMG* first_img_normalize = first_img->normalize_COLOR();
+	delete first_img;
+	first_img = first_img_normalize;*/
+
+	Harris* first_harris = new Harris(first_img);
+	IMG* first_calculated_harris = first_harris->calculate(3, "", dir + "/result");
+
+
+
+	first_Harris_indexUnicalPoint = first_harris->getIndexUnicalPoint();
+	first_img_Atan2 = first_harris->img_Atan2;
+	first_img_gradient = first_harris->img_gradient;
+
+	////////////////////////////////////////////////////////////////////////
+
+	IMG* second_img = new IMG(secondPath);
+
+	/*IMG* second_img_normalize = second_img->normalize_COLOR();
+	delete second_img;
+	second_img = second_img_normalize;*/
+
+	Harris* second_harris = new Harris(second_img);
+	IMG* second_calculated_harris = second_harris->calculate(3, "_turn", dir + "/result");
+
+	second_Harris_indexUnicalPoint = second_harris->getIndexUnicalPoint();
+	second_img_Atan2 = second_harris->img_Atan2;
+	second_img_gradient = second_harris->img_gradient;
+
+
+
+	Descriptors* descriptors_first =
+		new Descriptors(first_Harris_indexUnicalPoint, first_img_Atan2, first_img_gradient);
+
+	Descriptors* descriptors_second =
+		new Descriptors(second_Harris_indexUnicalPoint, second_img_Atan2, second_img_gradient);
+
+
+	// совмещенные картинки на одну
+	IMG* resultImg = Descriptors::createDemoImg(first_img, second_img);
+
+
+	//пары точек, для линий
+	vector<pair<Descriptor*, Descriptor*>*>* pairs =
+		Descriptors::createPairs(descriptors_first, descriptors_second);
+
+	// Рисуем линии на изображении
+	IMG* img_drawedLine = Descriptors::drawLine(first_img, second_img, resultImg, pairs);
+
+	IMG* img_drawedLine_normalize = img_drawedLine->normalize_COLOR();
+
+	img_drawedLine_normalize->saveImage_COLOR("line.jpg", dir + "/result");
+
+#ifdef CLEAR_MEMORY
+	delete resultImg;
+	delete img_drawedLine;
+	delete img_drawedLine_normalize;
+
+
+	delete first_harris;
+	delete second_harris;
+
+	delete descriptors_first;
+	delete descriptors_second;
+
+	delete first_img;
+	delete second_img;
+#endif // CLEAR_MEMORY
+
+
+  	cout << "";
+}
+
+
+
+int main(int argc, char** argv)
+{
+	unsigned int start_time = clock();
+
+#ifdef CLEAR_MEMORY
+	cout << "kek" << endl;
+#endif // CLEAR_MEMORY
+
+
+	//lab3();
+	lab4();
 
 	cout << "FULL TIME : " << (clock() - start_time) / 1000.0 << "\n\n\n";
+
 	return 0;
 }
 
