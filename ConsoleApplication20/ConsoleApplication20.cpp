@@ -191,18 +191,11 @@ void lab3() {
 void lab4() {
 	string dir = "C:/_img/";
 
-
+	//////////////////////////////////////////////////////////////////////
 	String firstPath = dir + "/" + "lenka_2(2).jpg";
 	vector<pair<int, int>*>* first_Harris_indexUnicalPoint;
 	IMG* first_img_Atan2;
 	IMG* first_img_gradient;
-
-	String secondPath = dir + "/" + "lenka_1.jpg";
-	vector<pair<int, int>*>* second_Harris_indexUnicalPoint;
-	IMG* second_img_Atan2;
-	IMG* second_img_gradient;
-
-
 
 	IMG* first_img = new IMG(firstPath);
 
@@ -213,13 +206,15 @@ void lab4() {
 	Harris* first_harris = new Harris(first_img);
 	IMG* first_calculated_harris = first_harris->calculate(3, "", dir + "/result");
 
-
-
 	first_Harris_indexUnicalPoint = first_harris->getIndexUnicalPoint();
 	first_img_Atan2 = first_harris->img_Atan2;
 	first_img_gradient = first_harris->img_gradient;
 
 	////////////////////////////////////////////////////////////////////////
+	String secondPath = dir + "/" + "lenka_1.jpg";
+	vector<pair<int, int>*>* second_Harris_indexUnicalPoint;
+	IMG* second_img_Atan2;
+	IMG* second_img_gradient;
 
 	IMG* second_img = new IMG(secondPath);
 
@@ -242,20 +237,19 @@ void lab4() {
 	Descriptors* descriptors_second =
 		new Descriptors(second_Harris_indexUnicalPoint, second_img_Atan2, second_img_gradient);
 
-
-	// совмещенные картинки на одну
-	IMG* resultImg = Descriptors::createDemoImg(first_img, second_img);
-
-
 	//пары точек, для линий
 	vector<pair<Descriptor*, Descriptor*>*>* pairs =
 		Descriptors::createPairs(descriptors_first, descriptors_second);
 
-	// Рисуем линии на изображении
+
+	// совмещенные картинки на одну
+	IMG* resultImg = Descriptors::createDemoImg(first_img, second_img);
+
+	// Рисуем линии на совмещенной картинке
 	IMG* img_drawedLine = Descriptors::drawLine(first_img, second_img, resultImg, pairs);
-
+	// нормализуем
 	IMG* img_drawedLine_normalize = img_drawedLine->normalize_COLOR();
-
+	// сохраняем
 	img_drawedLine_normalize->saveImage_COLOR("line.jpg", dir + "/result");
 
 #ifdef CLEAR_MEMORY
@@ -283,11 +277,6 @@ void lab4() {
 int main(int argc, char** argv)
 {
 	unsigned int start_time = clock();
-
-#ifdef CLEAR_MEMORY
-	cout << "kek" << endl;
-#endif // CLEAR_MEMORY
-
 
 	//lab3();
 	lab4();
