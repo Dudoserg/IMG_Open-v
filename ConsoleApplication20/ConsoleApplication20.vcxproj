@@ -184,7 +184,6 @@
     <ClInclude Include="IMG.h" />
     <ClInclude Include="Moravec.h" />
     <ClInclude Include="Octava.h" />
-    <ClInclude Include="Pixel.h" />
     <ClInclude Include="Pyramid_IMG.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

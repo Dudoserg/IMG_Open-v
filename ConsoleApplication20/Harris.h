@@ -114,15 +114,24 @@ public:
 						int index_X = col + x;
 						int index_Y = row + y;
 						// один из пикселей окна
-						Pixel* pixel_sobol_X =
-							img_normalized_Sobol_X->getPixelWithEdge(index_Y, index_X);
-						Pixel* pixel_sobol_Y =
-							img_normalized_Sobol_Y->getPixelWithEdge(index_Y, index_X);
+
+
+						double pixel_sobol_X_red = img_normalized_Sobol_X->getRedWithEdge(index_Y, index_X);	// TODO remove
+						double pixel_sobol_X_green = img_normalized_Sobol_X->getGreenWithEdge(index_Y, index_X);// TODO remove
+						double pixel_sobol_X_blue = img_normalized_Sobol_X->getBlueWithEdge(index_Y, index_X);// TODO remove
+						double pixel_sobol_X_gray = img_normalized_Sobol_X->getGrayWithEdge(index_Y, index_X);
+
+						double pixel_sobol_Y_red = img_normalized_Sobol_Y->getRedWithEdge(index_Y, index_X);// TODO remove
+						double pixel_sobol_Y_green = img_normalized_Sobol_Y->getGreenWithEdge(index_Y, index_X);// TODO remove
+						double pixel_sobol_Y_blue = img_normalized_Sobol_Y->getBlueWithEdge(index_Y, index_X);// TODO remove
+						double pixel_sobol_Y_gray = img_normalized_Sobol_Y->getGrayWithEdge(index_Y, index_X);
+
 						int gauss_X = x + windowHalfSize;
 						int gauss_y = y + windowHalfSize;
-						A += pixel_sobol_X->gray * pixel_sobol_X->gray * gaussMatrix->at(gauss_y)->at(gauss_X);
-						B += pixel_sobol_X->gray * pixel_sobol_Y->gray * gaussMatrix->at(gauss_y)->at(gauss_X);
-						C += pixel_sobol_Y->gray * pixel_sobol_Y->gray * gaussMatrix->at(gauss_y)->at(gauss_X);
+
+						A += pixel_sobol_X_gray * pixel_sobol_X_gray * gaussMatrix->at(gauss_y)->at(gauss_X);
+						B += pixel_sobol_X_gray * pixel_sobol_Y_gray * gaussMatrix->at(gauss_y)->at(gauss_X);
+						C += pixel_sobol_Y_gray * pixel_sobol_Y_gray * gaussMatrix->at(gauss_y)->at(gauss_X);
 					}
 				}
 				// вычисляем очередную матрицу в пикселе
@@ -218,10 +227,13 @@ public:
 
 			if (max < harrisPixel->L_min)
 				max = harrisPixel->L_min;
-			newImg->getPixels()->at(newImg->width * harrisPixel->row + harrisPixel->col)->red = harrisPixel->L_min;
-			newImg->getPixels()->at(newImg->width * harrisPixel->row + harrisPixel->col)->green = harrisPixel->L_min;
-			newImg->getPixels()->at(newImg->width * harrisPixel->row + harrisPixel->col)->blue = harrisPixel->L_min;
-			newImg->getPixels()->at(newImg->width * harrisPixel->row + harrisPixel->col)->gray = harrisPixel->L_min;
+
+
+			// TODO грохнуть лишние цвета
+			newImg->pixels_red[newImg->width * harrisPixel->row + harrisPixel->col] = harrisPixel->L_min;
+			newImg->pixels_green[newImg->width * harrisPixel->row + harrisPixel->col] = harrisPixel->L_min;
+			newImg->pixels_blue[newImg->width * harrisPixel->row + harrisPixel->col] = harrisPixel->L_min;
+			newImg->pixels_gray[newImg->width * harrisPixel->row + harrisPixel->col] = harrisPixel->L_min;
 		}
 
 		IMG* newImg_normalize = newImg->normalize_GRAY();

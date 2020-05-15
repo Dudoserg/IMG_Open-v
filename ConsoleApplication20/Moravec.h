@@ -66,15 +66,17 @@ public:
 							int index_Y = row + y;
 
 							//                            Pixels base = img.getImg_pixels()[index_Y * img->width + index_X];
-							Pixel *base = img->getPixels()->at(index_Y * img->width + index_X);
+							//Pixel *base = img->getPixels()->at(index_Y * img->width + index_X);
+							double base_gray = img->pixels_gray[index_Y * img->width + index_X];
 
 							index_X += shift_list[direction][0];
 							index_Y += shift_list[direction][1];
 
 							//                            Pixels pixel = img.getImg_pixels()[index_Y * img->width + index_X];
-							Pixel *pixel = img->getPixels()->at(index_Y * img->width + index_X);
+							//Pixel *pixel = img->getPixels()->at(index_Y * img->width + index_X);
+							double pixel_gray = img->pixels_gray[index_Y * img->width + index_X];
 
-							sum += (base->gray - pixel->gray) * (base->gray - pixel->gray);
+							sum += (base_gray - pixel_gray) * (base_gray - pixel_gray);
 						}
 					}
 					c_arr.push_back(sum);

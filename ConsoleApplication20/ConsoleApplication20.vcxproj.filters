@@ -41,9 +41,6 @@
     <ClInclude Include="Octava.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Pixel.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="Pyramid_IMG.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>

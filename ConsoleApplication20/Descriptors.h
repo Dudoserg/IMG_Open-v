@@ -12,7 +12,11 @@ using namespace std;
 
 class Descriptors
 {
+
+
 private:
+
+
 	vector<pair<int, int>*>* listPoints = new vector<pair<int, int>*>; // особые точки
 	IMG* img_Atan; // направление градиента
 	IMG* img_gradient; // величина градиента
@@ -103,8 +107,8 @@ public:
 
 							addValueToBox(
 								box,
-								img_Atan->getPixelWithEdge(index_Y, index_X),
-								img_gradient->getPixelWithEdge(index_Y, index_X)
+								img_Atan->getGrayWithEdge(index_Y, index_X),
+								img_gradient->getGrayWithEdge(index_Y, index_X)
 							);
 
 						}
@@ -141,9 +145,9 @@ public:
 		}
 	}
 
-	void addValueToBox(vector<double>* box, Pixel* pixel_direction, Pixel* pixel_gradient) {
+	void addValueToBox(vector<double>* box, double pixel_direction_gray, double pixel_gradient_gray){
 
-		double rad = pixel_direction->gray;
+		double rad = pixel_direction_gray;
 
 		//если угол отрицательный, переводим его в положительную окружность
 		if (rad < 0)
@@ -185,8 +189,8 @@ public:
 		// величина градиента
 
 		// величина которую кладем в корзины
-		double first_value = first_value_part * pixel_gradient->gray;
-		double second_value = second_value_part * pixel_gradient->gray;
+		double first_value = first_value_part * pixel_gradient_gray;
+		double second_value = second_value_part * pixel_gradient_gray;
 
 
 		// добавляем значения в корзины
@@ -241,19 +245,26 @@ public:
 		int resultH = max(firstH, secondH);
 
 
-		vector<Pixel*>* result = new vector<Pixel*>;
-		for (int i = 0; i < resultW * resultH; i++)
-			result->push_back(NULL);
+		double* result_red = new double[resultH * resultW];
+		double* result_green = new double[resultH * resultW];
+		double* result_blue = new double[resultH * resultW];
+		double* result_gray = new double[resultH * resultW];
 
 		for (int row = 0; row < resultH; row++) {
 			for (int col = 0; col < resultW; col++) {
-				result->at(row * resultW + col) = new Pixel(0.0, 0.0, 0.0, 0.0, 0.0);
+				result_red[row * resultW + col] = 0.0;
+				result_green[row * resultW + col] = 0.0;
+				result_blue[row * resultW + col] = 0.0;
+				result_gray[row * resultW + col] = 0.0;
 			}
 		}
 		// помещаем на итоговое изображение первую картинку
 		for (int row = 0; row < firstH; row++) {
 			for (int col = 0; col < firstW; col++) {
-				result->at(row * resultW + col) = first->getPixels()->at(row * firstW + col)->copy();
+				result_red[row * resultW + col] = first->pixels_red[row * firstW + col];
+				result_green[row * resultW + col] = first->pixels_green[row * firstW + col];
+				result_blue[row * resultW + col] = first->pixels_blue[row * firstW + col];
+				result_gray[row * resultW + col] = first->pixels_gray[row * firstW + col];
 			}
 		}
 
@@ -261,10 +272,13 @@ public:
 		for (int row = 0; row < secondH; row++) {
 			for (int col = 0; col < secondW; col++) {
 				// добавляем отступ слева, равный ширине первого изображения firstW
-				result->at(row * resultW + col + firstW) = second->getPixels()->at(row * secondW + col)->copy();
+				result_red[row * resultW + col + firstW] = second->pixels_red[row * secondW + col];
+				result_green[row * resultW + col + firstW] = second->pixels_green[row * secondW + col];
+				result_blue[row * resultW + col + firstW] = second->pixels_blue[row * secondW + col];
+				result_gray[row * resultW + col + firstW] = second->pixels_gray[row * secondW + col];
 			}
 		}
-		return new IMG(resultW, resultH, result);
+		return new IMG(resultW, resultH, result_red, result_green, result_blue, result_gray);
 	}
 
 
@@ -349,9 +363,10 @@ public:
 
 		// убираем лишнии соответствия
 		int indexOk = 0;
+		double level = 0.04;
 		for (int i = 2; i < pairsList->size(); i++) {
 			double div = pairsList->at(i)->second / pairsList->at(i - 1)->second;
-			if (pairsList->at(i)->second > 0.05)
+			if (pairsList->at(i)->second > level)
 				break;
 			indexOk = i;
 
@@ -393,8 +408,8 @@ public:
 		img_forDraw->setMatToPixelsArray(tmp_image);
 
 
-
 		return img_forDraw;
 	}
 };
+
 

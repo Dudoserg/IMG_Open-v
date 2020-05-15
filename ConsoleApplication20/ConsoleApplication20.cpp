@@ -16,7 +16,7 @@
 #include "IMG.h"
 #include "Octava.h"
 #include "Pyramid_IMG.h"
-#include "Pixel.h"
+//#include "Pixel.h"
 #include "Moravec.h"
 #include "HarrisPixel.h"
 #include "Harris.h"
@@ -188,16 +188,14 @@ void lab3() {
 	}
 }
 
-void lab4() {
-	string dir = "C:/_img/";
+void lab4(String firstName, String secondName, String dir, String resultName) {
 
 	//////////////////////////////////////////////////////////////////////
-	String firstPath = dir + "/" + "lenka_2(2).jpg";
 	vector<pair<int, int>*>* first_Harris_indexUnicalPoint;
 	IMG* first_img_Atan2;
 	IMG* first_img_gradient;
 
-	IMG* first_img = new IMG(firstPath);
+	IMG* first_img = new IMG(dir + "/" + firstName);
 
 	/*IMG* first_img_normalize = first_img->normalize_COLOR();
 	delete first_img;
@@ -211,12 +209,11 @@ void lab4() {
 	first_img_gradient = first_harris->img_gradient;
 
 	////////////////////////////////////////////////////////////////////////
-	String secondPath = dir + "/" + "lenka_1.jpg";
 	vector<pair<int, int>*>* second_Harris_indexUnicalPoint;
 	IMG* second_img_Atan2;
 	IMG* second_img_gradient;
 
-	IMG* second_img = new IMG(secondPath);
+	IMG* second_img = new IMG(dir + "/" +  secondName);
 
 	/*IMG* second_img_normalize = second_img->normalize_COLOR();
 	delete second_img;
@@ -228,7 +225,6 @@ void lab4() {
 	second_Harris_indexUnicalPoint = second_harris->getIndexUnicalPoint();
 	second_img_Atan2 = second_harris->img_Atan2;
 	second_img_gradient = second_harris->img_gradient;
-
 
 
 	Descriptors* descriptors_first =
@@ -250,7 +246,7 @@ void lab4() {
 	// нормализуем
 	IMG* img_drawedLine_normalize = img_drawedLine->normalize_COLOR();
 	// сохраняем
-	img_drawedLine_normalize->saveImage_COLOR("line.jpg", dir + "/result");
+	img_drawedLine_normalize->saveImage_COLOR(resultName, dir + "/result");
 
 #ifdef CLEAR_MEMORY
 	delete resultImg;
@@ -268,7 +264,6 @@ void lab4() {
 	delete second_img;
 #endif // CLEAR_MEMORY
 
-
   	cout << "";
 }
 
@@ -278,8 +273,11 @@ int main(int argc, char** argv)
 {
 	unsigned int start_time = clock();
 
-	//lab3();
-	lab4();
+	string dir = "C:/_img/";
+	String _1 = "lenka_1.jpg";
+	String _2 = "lenka_2(2).jpg";
+
+	lab4(_1, _2, dir, "line.jpg");
 
 	cout << "FULL TIME : " << (clock() - start_time) / 1000.0 << "\n\n\n";
 

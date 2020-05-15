@@ -29,22 +29,23 @@ void IMG::setImage(Mat value)
 	this->width = value.cols;
 }
 
-vector<Pixel*>* IMG::getPixels() const
-{
-	return this->list;
-}
+//vector<Pixel*>* IMG::getPixels() const
+//{
+//	return this->list;
+//}
 
 
 
-void IMG::setPixels(vector<Pixel*>* value)
-{
-	int size = this->width * this->height;
-	//    for(int i=0; i < size; ++i)
-	//        delete this->pixels[i];
-	//    delete [] this->pixels;
 
-	list = value;
-}
+//void IMG::setPixels(vector<Pixel*>* value)
+//{
+//	int size = this->width * this->height;
+//	//    for(int i=0; i < size; ++i)
+//	//        delete this->pixels[i];
+//	//    delete [] this->pixels;
+//
+//	list = value;
+//}
 
 
 
@@ -53,7 +54,6 @@ void IMG::setPixels(vector<Pixel*>* value)
 // Создаем одномерный массив **Pixel, в котором храним цвет (Приведя его к промежутку [0...1])
 void IMG::initImageDoubleArr()
 {
-	Pixel** pixels = new Pixel * [this->width * this->height];
 
 	for (int row = 0; row < this->height; ++row) {
 		for (int col = 0; col < this->width; ++col) {
@@ -64,7 +64,12 @@ void IMG::initImageDoubleArr()
 			//int gray = ((double)red * 0.2125) + ((double)green * 0.7154) + ((double)blue * 0.0721);
 			int gray = ((double)red * 0.213) + ((double)green * 0.715) + ((double)blue * 0.0722);
 
-			list->push_back(new Pixel((red / 255.0), (green / 255.0), (blue / 255.0), (gray / 255.0), gray / 255.0));
+			//list->push_back(new Pixel((red / 255.0), (green / 255.0), (blue / 255.0), (gray / 255.0), gray / 255.0));
+
+			this->pixels_red[row * this->width + col] = red / 255.0;
+			this->pixels_green[row * this->width + col] = green / 255.0;
+			this->pixels_blue[row * this->width + col] = blue / 255.0;
+			this->pixels_gray[row * this->width + col] = gray / 255.0;
 		}
 	}
 }
@@ -77,13 +82,17 @@ void IMG::initImageDoubleArr()
 void IMG::deletePixels()
 {
 #ifdef CLEAR_MEMORY
-	for (int i = 0; i < this->list->size(); ++i)
+	delete[] pixels_red;
+	delete[] pixels_green;
+	delete[] pixels_blue;
+	delete[] pixels_gray;
+	/*for (int i = 0; i < this->list->size(); ++i)
 		delete (*list)[i];
 
 	this->list->clear();
 	this->list->shrink_to_fit();
 
-	delete this->list;
+	delete this->list;*/
 #endif // CLEAR_MEMORY
 }
 
@@ -127,20 +136,25 @@ void IMG::saveImage_COLOR(string fileName, string dir)
  */
 IMG* IMG::cross_COLOR(vector<vector<double> >& matrix, double div, edgeEffect e)
 {
-	vector<Pixel*>* pixel = this->list;
+	//vector<Pixel*>* pixel = this->list;
 
 
 	//    Pixel **result =  new Pixel*[this->width * this->height];
 
-	vector<Pixel*>* result = new vector<Pixel*>();
-	for (int i = 0; i < this->width * this->height; i++)
-		result->push_back(new Pixel(
-			(*pixel)[i]->red,
-			(*pixel)[i]->green,
-			(*pixel)[i]->blue,
-			(*pixel)[i]->alpha,
-			(*pixel)[i]->gray
-		));
+	//vector<Pixel*>* result = new vector<Pixel*>();
+
+
+	double* result_red = new double[this->height * this->width];
+	double* result_green = new double[this->height * this->width];
+	double* result_blue = new double[this->height * this->width];
+	double* result_gray = new double[this->height * this->width];
+
+	for (int i = 0; i < this->width * this->height; i++) {
+		result_red[i] = this->pixels_red[i];
+		result_green[i] = this->pixels_green[i];
+		result_blue[i] = this->pixels_blue[i];
+		result_gray[i] = this->pixels_gray[i];
+	}
 
 
 
@@ -181,10 +195,10 @@ IMG* IMG::cross_COLOR(vector<vector<double> >& matrix, double div, edgeEffect e)
 
 
 					}
-					value_RED = (*pixel)[x * this->width + y]->red;
-					value_GREEN = (*pixel)[x * this->width + y]->green;
-					value_BLUE = (*pixel)[x * this->width + y]->blue;
-					value_GRAY = (*pixel)[x * this->width + y]->gray;
+					value_RED = this->pixels_red[x * this->width + y];
+					value_GREEN = this->pixels_green[x * this->width + y];
+					value_BLUE = this->pixels_blue[x * this->width + y];
+					value_GRAY = this->pixels_gray[x * this->width + y];
 
 					sum_RED += matrix[u + ku][v + kv] * value_RED;
 					sum_GREEN += matrix[u + ku][v + kv] * value_GREEN;
@@ -196,16 +210,16 @@ IMG* IMG::cross_COLOR(vector<vector<double> >& matrix, double div, edgeEffect e)
 			sum_GREEN *= div;
 			sum_BLUE *= div;
 			sum_GRAY *= div;
-			(*result)[row * this->width + col]->red = sum_RED;
-			(*result)[row * this->width + col]->green = sum_GREEN;
-			(*result)[row * this->width + col]->blue = sum_BLUE;
-			(*result)[row * this->width + col]->gray = sum_GRAY;
+			result_red[row * this->width + col] = sum_RED;
+			result_green[row * this->width + col] = sum_GREEN;
+			result_blue[row * this->width + col] = sum_BLUE;
+			result_gray[row * this->width + col] = sum_GRAY;
 		}
 
 
 	}
 
-	return new IMG(this->width, this->height, result);
+	return new IMG(this->width, this->height, result_red, result_green, result_blue, result_gray);
 }
 
 /**
@@ -218,22 +232,24 @@ IMG* IMG::cross_COLOR(vector<vector<double> >& matrix, double div, edgeEffect e)
  */
 IMG* IMG::cross_GRAY(vector<vector<double> >& matrix, double div, edgeEffect e)
 {
-	vector<Pixel*>* pixel = this->list;
+	//vector<Pixel*>* pixel = this->list;
 
 
 	//    Pixel **result =  new Pixel*[this->width * this->height];
 
-	vector<Pixel*>* result = new vector<Pixel*>();
-	for (int i = 0; i < this->width * this->height; i++)
-		result->push_back(new Pixel(
-			(*pixel)[i]->red,
-			(*pixel)[i]->green,
-			(*pixel)[i]->blue,
-			(*pixel)[i]->alpha,
-			(*pixel)[i]->gray
-		));
+	//vector<Pixel*>* result = new vector<Pixel*>();
 
+	double* result_red = new double[this->height * this->width];
+	double* result_green = new double[this->height * this->width];
+	double* result_blue = new double[this->height * this->width];
+	double* result_gray = new double[this->height * this->width];
 
+	for (int i = 0; i < this->width * this->height; i++) {
+		result_red[i] = this->pixels_red[i];
+		result_green[i] = this->pixels_green[i];
+		result_blue[i] = this->pixels_blue[i];
+		result_gray[i] = this->pixels_gray[i];
+	}
 
 	for (int row = 0; row < this->height; row++) {
 		for (int col = 0; col < this->width; col++) {
@@ -264,7 +280,7 @@ IMG* IMG::cross_GRAY(vector<vector<double> >& matrix, double div, edgeEffect e)
 
 					}
 
-					value_GRAY = (*pixel)[x * this->width + y]->gray;
+					value_GRAY = this->pixels_gray[x * this->width + y];
 
 
 					sum_GRAY += matrix[u + ku][v + kv] * value_GRAY;
@@ -272,13 +288,13 @@ IMG* IMG::cross_GRAY(vector<vector<double> >& matrix, double div, edgeEffect e)
 			}
 
 			sum_GRAY *= div;
-			(*result)[row * this->width + col]->gray = sum_GRAY;
+			result_gray[row * this->width + col] = sum_GRAY;
 		}
 
 
 	}
 
-	return new IMG(this->width, this->height, result);
+	return new IMG(this->width, this->height, result_red, result_green, result_blue, result_gray);
 }
 
 
@@ -286,18 +302,18 @@ IMG* IMG::cross_GRAY(vector<vector<double> >& matrix, double div, edgeEffect e)
 IMG* IMG::normalize_COLOR()
 {
 	unsigned int start_time = clock();
-	vector<Pixel*>* pixel = this->list;
-	vector<Pixel*>* result = new vector<Pixel*>();
+
+	double* result_red = new double[this->height * this->width];
+	double* result_green = new double[this->height * this->width];
+	double* result_blue = new double[this->height * this->width];
+	double* result_gray = new double[this->height * this->width];
+
 	for (int i = 0; i < this->width * this->height; i++) {
-		result->push_back(new Pixel(
-			(*pixel)[i]->red,
-			(*pixel)[i]->green,
-			(*pixel)[i]->blue,
-			(*pixel)[i]->alpha,
-			(*pixel)[i]->gray
-		));
+		result_red[i] = this->pixels_red[i];
+		result_green[i] = this->pixels_green[i];
+		result_blue[i] = this->pixels_blue[i];
+		result_gray[i] = this->pixels_gray[i];
 	}
-	//Pixel **result =  new Pixel*[this->width * this->height];
 
 	double max_RED = -99999999.0;
 	double min_RED = 99999999.0;
@@ -311,59 +327,60 @@ IMG* IMG::normalize_COLOR()
 	for (int row = 0; row < this->height; row++) {
 		for (int col = 0; col < this->width; col++) {
 			int index = row * this->width + col;
-			if (max_RED < (*pixel)[index]->red)
-				max_RED = (*pixel)[index]->red;
-			else if (min_RED > (*pixel)[index]->red)
-				min_RED = (*pixel)[index]->red;
+			if (max_RED < this->pixels_red[index])
+				max_RED = this->pixels_red[index];
+			else if (min_RED > this->pixels_red[index])
+				min_RED = this->pixels_red[index];
 
-			if (max_GREEN < (*pixel)[index]->green)
-				max_GREEN = (*pixel)[index]->green;
-			else if (min_GREEN > (*pixel)[index]->green)
-				min_GREEN = (*pixel)[index]->green;
+			if (max_GREEN < this->pixels_green[index])
+				max_GREEN = this->pixels_green[index];
+			else if (min_GREEN > this->pixels_green[index])
+				min_GREEN = this->pixels_green[index];
 
-			if (max_BLUE < (*pixel)[index]->blue)
-				max_BLUE = (*pixel)[index]->blue;
-			else if (min_BLUE > (*pixel)[index]->blue)
-				min_BLUE = (*pixel)[index]->blue;
+			if (max_BLUE < this->pixels_blue[index])
+				max_BLUE = this->pixels_blue[index];
+			else if (min_BLUE > this->pixels_blue[index])
+				min_BLUE = this->pixels_blue[index];
 
-			if (max_GRAY < (*pixel)[index]->gray)
-				max_GRAY = (*pixel)[index]->gray;
-			else if (min_GRAY > (*pixel)[index]->gray)
-				min_GRAY = (*pixel)[index]->gray;
+			if (max_GRAY < this->pixels_gray[index])
+				max_GRAY = this->pixels_gray[index];
+			else if (min_GRAY > this->pixels_gray[index])
+				min_GRAY = this->pixels_gray[index];
 		}
 	}
 	for (int row = 0; row < this->height; row++) {
 		for (int col = 0; col < this->width; col++) {
 			int index = row * this->width + col;
 
-			double tmp_RED = ((*pixel)[index]->red - min_RED) * ((1.0 - 0.0) / (max_RED - min_RED)) + 0.0;
-			double tmp_GREEN = ((*pixel)[index]->green - min_GREEN) * ((1.0 - 0.0) / (max_GREEN - min_GREEN)) + 0.0;
-			double tmp_BLUE = ((*pixel)[index]->blue - min_BLUE) * ((1.0 - 0.0) / (max_BLUE - min_BLUE)) + 0.0;
-			double tmp_GRAY = ((*pixel)[index]->gray - min_GRAY) * ((1.0 - 0.0) / (max_GRAY - min_GRAY)) + 0.0;
+			double tmp_RED = (this->pixels_red[index] - min_RED) * ((1.0 - 0.0) / (max_RED - min_RED)) + 0.0;
+			double tmp_GREEN = (this->pixels_green[index] - min_GREEN) * ((1.0 - 0.0) / (max_GREEN - min_GREEN)) + 0.0;
+			double tmp_BLUE = (this->pixels_blue[index] - min_BLUE) * ((1.0 - 0.0) / (max_BLUE - min_BLUE)) + 0.0;
+			double tmp_GRAY = (this->pixels_gray[index] - min_GRAY) * ((1.0 - 0.0) / (max_GRAY - min_GRAY)) + 0.0;
 
-			(*result)[index]->red = tmp_RED;
-			(*result)[index]->green = tmp_GREEN;
-			(*result)[index]->blue = tmp_BLUE;
-			(*result)[index]->gray = tmp_GRAY;
+			result_red[index] = tmp_RED;
+			result_green[index] = tmp_GREEN;
+			result_blue[index] = tmp_BLUE;
+			result_gray[index] = tmp_GRAY;
 		}
 	}
 	cout << "normalize : " << (clock() - start_time) / 1000.0 << "\n";
-	return new IMG(this->width, this->height, result);
+	return new IMG(this->width, this->height, result_red, result_green, result_blue, result_gray);
 }
 
 IMG* IMG::normalize_GRAY()
 {
 	unsigned int start_time = clock();
-	vector<Pixel*>* pixel = this->list;
-	vector<Pixel*>* result = new vector<Pixel*>();
+
+	double* result_red = new double[this->height * this->width];
+	double* result_green = new double[this->height * this->width];
+	double* result_blue = new double[this->height * this->width];
+	double* result_gray = new double[this->height * this->width];
+
 	for (int i = 0; i < this->width * this->height; i++) {
-		result->push_back(new Pixel(
-			(*pixel)[i]->red,
-			(*pixel)[i]->green,
-			(*pixel)[i]->blue,
-			(*pixel)[i]->alpha,
-			(*pixel)[i]->gray
-		));
+		result_red[i] = this->pixels_red[i];
+		result_green[i] = this->pixels_green[i];
+		result_blue[i] = this->pixels_blue[i];
+		result_gray[i] = this->pixels_gray[i];
 	}
 
 	double max_GRAY = -99999999.0;
@@ -373,21 +390,21 @@ IMG* IMG::normalize_GRAY()
 		for (int col = 0; col < this->width; col++) {
 			int index = row * this->width + col;
 
-			if (max_GRAY < (*pixel)[index]->gray)
-				max_GRAY = (*pixel)[index]->gray;
-			else if (min_GRAY > (*pixel)[index]->gray)
-				min_GRAY = (*pixel)[index]->gray;
+			if (max_GRAY < this->pixels_gray[index])
+				max_GRAY = this->pixels_gray[index];
+			else if (min_GRAY > this->pixels_gray[index])
+				min_GRAY = this->pixels_gray[index];
 		}
 	}
 	for (int row = 0; row < this->height; row++) {
 		for (int col = 0; col < this->width; col++) {
 			int index = row * this->width + col;
-			double tmp_GRAY = ((*pixel)[index]->gray - min_GRAY) * ((1.0 - 0.0) / (max_GRAY - min_GRAY)) + 0.0;
-			(*result)[index]->gray = tmp_GRAY;
+			double tmp_GRAY = (this->pixels_gray[index] - min_GRAY) * ((1.0 - 0.0) / (max_GRAY - min_GRAY)) + 0.0;
+			result_gray[index] = tmp_GRAY;
 		}
 	}
 	cout << "normalize : " << (clock() - start_time) / 1000.0 << "\n";
-	return new IMG(this->width, this->height, result);
+	return new IMG(this->width, this->height, result_red, result_green, result_blue, result_gray);
 }
 
 /**
@@ -441,25 +458,36 @@ IMG* IMG::sobelDerivativeY(IMG::edgeEffect e)
 IMG* IMG::sobelGradient(IMG* imgX, IMG* imgY)
 {
 	unsigned int start_time = clock();
-	vector<Pixel*>* pixelX = imgX->list;
-	vector<Pixel*>* pixelY = imgY->list;
-	vector<Pixel*>* result_XY = new vector<Pixel*>();
 
-	for (int i = 0; i < this->width * this->height; i++)
-		result_XY->push_back(NULL);
+
+	double* result_red = new double[this->height * this->width];
+	double* result_green = new double[this->height * this->width];
+	double* result_blue = new double[this->height * this->width];
+	double* result_gray = new double[this->height * this->width];
+
+	for (int i = 0; i < this->width * this->height; i++) {
+		result_red[i] = this->pixels_red[i];
+		result_green[i] = this->pixels_green[i];
+		result_blue[i] = this->pixels_blue[i];
+		result_gray[i] = this->pixels_gray[i];
+	}
+
 
 	for (int i = 0; i < this->height; i++) {
 		for (int j = 0; j < this->width; j++) {
 			int index = i * this->width + j;
-			double val_X = (*pixelX)[index]->gray;
-			double val_Y = (*pixelY)[index]->gray;
+			double val_X = imgX->pixels_gray[index];
+			double val_Y = imgY->pixels_gray[index];
 			double sq = sqrt(val_X * val_X + val_Y * val_Y);
-			//sq = qMax(qMin(sq, 255.0), 0.0);
-			(*result_XY)[index] = new Pixel(sq);
+
+			result_red[index] = sq;
+			result_green[index] = sq;
+			result_blue[index] = sq;
+			result_gray[index] = sq;
 		}
 	}
 	cout << "sobelGradient : " << (clock() - start_time) / 1000.0 << "\n";
-	return new IMG(this->width, this->height, result_XY);
+	return new IMG(this->width, this->height, result_red, result_green, result_blue, result_gray);
 }
 
 IMG* IMG::gaussFilter(double sigma)
@@ -550,8 +578,6 @@ IMG* IMG::gaussFilter_separable(double sigma)
 
 Mat IMG::createImage_GRAY()
 {
-	vector<Pixel*>* pixel = this->list;
-
 	int new_img_size_row = this->height;
 	int new_img_size_col = this->width;
 	Mat new_img = Mat::zeros(new_img_size_row, new_img_size_col, CV_8UC3);
@@ -559,10 +585,9 @@ Mat IMG::createImage_GRAY()
 	for (int row = 0; row < new_img.rows; row++) {
 		for (int col = 0; col < new_img.cols; col++) {
 			Vec3b& color = new_img.at<Vec3b>(row, col);
-			color[2] = (*pixel)[row * this->width + col]->gray * 255.0;
-			color[1] = (*pixel)[row * this->width + col]->gray * 255.0;
-			color[0] = (*pixel)[row * this->width + col]->gray * 255.0;
-
+			color[2] = this->pixels_gray[row * this->width + col] * 255.0;
+			color[1] = this->pixels_gray[row * this->width + col] * 255.0;
+			color[0] = this->pixels_gray[row * this->width + col] * 255.0;
 		}
 	}
 	return new_img;
@@ -570,8 +595,6 @@ Mat IMG::createImage_GRAY()
 
 Mat IMG::createImage_COLOR()
 {
-	vector<Pixel*>* pixel = this->list;
-
 	int new_img_size_row = this->height;
 	int new_img_size_col = this->width;
 	Mat new_img = Mat::zeros(new_img_size_row, new_img_size_col, CV_8UC3);
@@ -579,9 +602,9 @@ Mat IMG::createImage_COLOR()
 	for (int row = 0; row < new_img.rows; row++) {
 		for (int col = 0; col < new_img.cols; col++) {
 			Vec3b& color = new_img.at<Vec3b>(row, col);
-			color[2] = (*pixel)[row * this->width + col]->red * 255.0;
-			color[1] = (*pixel)[row * this->width + col]->green * 255.0;
-			color[0] = (*pixel)[row * this->width + col]->blue * 255.0;
+			color[2] = this->pixels_red[row * this->width + col] * 255.0;
+			color[1] = this->pixels_green[row * this->width + col] * 255.0;
+			color[0] = this->pixels_blue[row * this->width + col] * 255.0;
 			int a = 2;
 		}
 	}
@@ -595,36 +618,38 @@ IMG* IMG::downSample()
 {
 	int new_width = this->width / 2;
 	int new_height = this->height / 2;
-	vector<Pixel*>* new_pixels = new vector<Pixel*>();
+	
+	double* result_red = new double[new_height * new_width];
+	double* result_green = new double[new_height * new_width];
+	double* result_blue = new double[new_height * new_width];
+	double* result_gray = new double[new_height * new_width];
+
 
 	for (int row = 0; row < new_height; row++) {
 		for (int col = 0; col < new_width; col++) {
-			new_pixels->push_back(new Pixel(
-				(*this->list)[row * 2 * this->width + col * 2]->red,
-				(*this->list)[row * 2 * this->width + col * 2]->green,
-				(*this->list)[row * 2 * this->width + col * 2]->blue,
-				(*this->list)[row * 2 * this->width + col * 2]->alpha,
-				(*this->list)[row * 2 * this->width + col * 2]->gray
-			));
+			result_red[row * new_width + col] = this->pixels_red[row * 2 * this->width + col * 2];
+			result_green[row * new_width + col] = this->pixels_green[row * 2 * this->width + col * 2];
+			result_blue[row * new_width + col] = this->pixels_blue[row * 2 * this->width + col * 2];
+			result_gray[row * new_width + col] = this->pixels_gray[row * 2 * this->width + col * 2];
 		}
 	}
-	return new IMG(new_width, new_height, new_pixels);
+	return new IMG(new_width, new_height, result_red, result_green, result_blue, result_gray);
 }
 
 double IMG::getColor(int coordinate, IMG::COLOR color) {
 
 	switch (color) {
 	case IMG::COLOR::RED: {
-		return (*this->list)[coordinate]->red;
+		return this->pixels_red[coordinate];
 	}
 	case IMG::COLOR::GREEN: {
-		return (*this->list)[coordinate]->green;
+		return this->pixels_green[coordinate];
 	}
 	case IMG::COLOR::BLUE: {
-		return (*this->list)[coordinate]->blue;
+		return this->pixels_blue[coordinate];
 	}
 	case IMG::COLOR::GRAY: {
-		return (*this->list)[coordinate]->gray;
+		return this->pixels_gray[coordinate];
 	}
 
 	}
