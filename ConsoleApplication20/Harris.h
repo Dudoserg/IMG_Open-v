@@ -22,10 +22,10 @@ public:
 
 	// коилчество уникальных точек
 
-	int POINT_COUNT_HARRIS = 150;
+	int POINT_COUNT_HARRIS = 200;
 
-	int POINT_COUNT_TOP_POWERFUL = 150;
-	int POINT_COUNT_TOP_ANMS = 150;
+	int POINT_COUNT_TOP_POWERFUL = 200;
+	int POINT_COUNT_TOP_ANMS = 200;
 
 	vector<pair<int, int>*>* indexUnicalPoint = new vector<pair<int, int>*>;
 

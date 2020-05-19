@@ -175,6 +175,35 @@ public:
 	}
 
 
+	static vector<vector<double>*>* static_getGaussMatrix(int size) {
+		vector<vector<double>*>* matrix_gauss = new vector<vector<double>*>;
+
+		//        int size = (int) (3 * sigma);
+		double sigma = (double)(size / 3.0);
+		int halfSize = size / 2;
+		double ss2 = 2 * sigma * sigma;
+		double firstDrob = 1.0 / (M_PI * ss2);
+		double test_sum = 0.0;
+		for (int x = -halfSize; x <= halfSize; x++) {
+			vector<double>* tmp = new vector<double>();
+			for (int y = -halfSize; y <= halfSize; y++) {
+				double gauss = firstDrob * exp(-(x * x + y * y) / ss2);
+				tmp->push_back(gauss);
+				test_sum += gauss;
+			}
+			matrix_gauss->push_back(tmp);
+		}
+		double test_sum_after = 0.0;
+		for (int x = -halfSize; x <= halfSize; x++) {
+			for (int y = -halfSize; y <= halfSize; y++) {
+				double val = matrix_gauss->at(x + halfSize)->at(y + halfSize) / test_sum;
+				matrix_gauss->at(x + halfSize)->at(y + halfSize) = val;
+
+				test_sum_after += matrix_gauss->at(x + halfSize)->at(y + halfSize);
+			}
+		}
+		return matrix_gauss;
+	}
 
 	vector<vector<double>*>* getGaussMatrix(int size) {
 		vector<vector<double>*>* matrix_gauss = new vector<vector<double>*>;

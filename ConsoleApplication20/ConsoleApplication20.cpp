@@ -21,6 +21,7 @@
 #include "HarrisPixel.h"
 #include "Harris.h"
 #include "Descriptors.h"
+#include "Descriptors_turn.h"
 
 
 
@@ -267,7 +268,85 @@ void lab4(String firstName, String secondName, String dir, String resultName) {
   	cout << "";
 }
 
+void lab5(String dir, String firstName, String secondName, String resultName, double sigma){
+	//////////////////////////////////////////////////////////////////////
+	vector<pair<int, int>*>* first_Harris_indexUnicalPoint;
+	IMG* first_img_Atan2;
+	IMG* first_img_gradient;
 
+	IMG* first_img = new IMG(dir + "/" + firstName);
+	first_img = first_img->gaussFilter_separable(sigma);
+	first_img = first_img->normalize_COLOR();
+
+	/*IMG* first_img_normalize = first_img->normalize_COLOR();
+	delete first_img;
+	first_img = first_img_normalize;*/
+
+	Harris* first_harris = new Harris(first_img);
+	IMG* first_calculated_harris = first_harris->calculate(3, "", dir + "/result");
+
+	first_Harris_indexUnicalPoint = first_harris->getIndexUnicalPoint();
+	first_img_Atan2 = first_harris->img_Atan2;
+	first_img_gradient = first_harris->img_gradient;
+
+	////////////////////////////////////////////////////////////////////////
+	vector<pair<int, int>*>* second_Harris_indexUnicalPoint;
+	IMG* second_img_Atan2;
+	IMG* second_img_gradient;
+
+	IMG* second_img = new IMG(dir + "/" + secondName);
+	second_img = second_img->gaussFilter_separable(sigma);
+	second_img = second_img->normalize_COLOR();
+	/*IMG* second_img_normalize = second_img->normalize_COLOR();
+	delete second_img;
+	second_img = second_img_normalize;*/
+
+	Harris* second_harris = new Harris(second_img);
+	IMG* second_calculated_harris = second_harris->calculate(3, "_turn", dir + "/result");
+
+	second_Harris_indexUnicalPoint = second_harris->getIndexUnicalPoint();
+	second_img_Atan2 = second_harris->img_Atan2;
+	second_img_gradient = second_harris->img_gradient;
+
+	Descriptors_turn* descriptors_first =
+		new Descriptors_turn(first_Harris_indexUnicalPoint, first_img_Atan2, first_img_gradient, 0);
+
+	Descriptors_turn* descriptors_second =
+		new Descriptors_turn(second_Harris_indexUnicalPoint, second_img_Atan2, second_img_gradient, 0);
+
+	//пары точек, для линий
+	vector<pair<Descriptor*, Descriptor*>*>* pairs =
+		Descriptors_turn::createPairs(descriptors_first, descriptors_second);
+
+
+	// совмещенные картинки на одну
+	IMG* resultImg = Descriptors::createDemoImg(first_img, second_img);
+
+	// Рисуем линии на совмещенной картинке
+	IMG* img_drawedLine = Descriptors::drawLine(first_img, second_img, resultImg, pairs);
+	// нормализуем
+	IMG* img_drawedLine_normalize = img_drawedLine->normalize_COLOR();
+	// сохраняем
+	img_drawedLine_normalize->saveImage_COLOR(resultName, dir + "/result");
+
+#ifdef CLEAR_MEMORY
+	delete resultImg;
+	delete img_drawedLine;
+	delete img_drawedLine_normalize;
+
+
+	delete first_harris;
+	delete second_harris;
+
+	delete descriptors_first;
+	delete descriptors_second;
+
+	delete first_img;
+	delete second_img;
+#endif // CLEAR_MEMORY
+
+	cout << "";
+}
 
 int main(int argc, char** argv)
 {
@@ -277,7 +356,9 @@ int main(int argc, char** argv)
 	String _1 = "lenka_1.jpg";
 	String _2 = "lenka_2(2).jpg";
 
-	lab4(_1, _2, dir, "line.jpg");
+	//lab4(_1, _2, dir, "line.jpg");
+
+	lab5(dir, "lenka_1.jpg", "lenka_turn90.jpg", "line.jpg", 2.0);
 
 	cout << "FULL TIME : " << (clock() - start_time) / 1000.0 << "\n\n\n";
 
