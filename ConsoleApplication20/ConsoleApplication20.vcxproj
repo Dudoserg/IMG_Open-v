@@ -171,8 +171,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConsoleApplication20.cpp" />
-    <ClCompile Include="Descriptors.cpp" />
-    <ClCompile Include="Descriptors_turn.cpp" />
     <ClCompile Include="IMG.cpp" />
   </ItemGroup>
   <ItemGroup>
