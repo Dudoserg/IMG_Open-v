@@ -351,6 +351,7 @@ void lab5(String dir, String firstName, String secondName, String resultName, do
 int main(int argc, char** argv)
 {
 	unsigned int start_time = clock();
+	double test = cos(360);
 
 	string dir = "C:/_img/";
 	String _1 = "lenka_1.jpg";
