@@ -172,6 +172,7 @@
   <ItemGroup>
     <ClCompile Include="ConsoleApplication20.cpp" />
     <ClCompile Include="IMG.cpp" />
+    <ClCompile Include="InterestingPoint.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConsoleApplication20.h" />
@@ -182,6 +183,7 @@
     <ClInclude Include="Harris.h" />
     <ClInclude Include="HarrisPixel.h" />
     <ClInclude Include="IMG.h" />
+    <ClInclude Include="InterestingPoint.h" />
     <ClInclude Include="Moravec.h" />
     <ClInclude Include="Octava.h" />
     <ClInclude Include="Pyramid_IMG.h" />

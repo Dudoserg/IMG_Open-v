@@ -315,15 +315,15 @@ void lab5(String dir, String firstName, String secondName, String resultName, do
 		new Descriptors_turn(second_Harris_indexUnicalPoint, second_img_Atan2, second_img_gradient, 0);
 
 	//пары точек, для линий
-	vector<pair<Descriptor*, Descriptor*>*>* pairs =
+	vector<pair<InterestingPoint*, InterestingPoint*>*>* pairs =
 		Descriptors_turn::createPairs(descriptors_first, descriptors_second);
 
 
 	// совмещенные картинки на одну
-	IMG* resultImg = Descriptors::createDemoImg(first_img, second_img);
+	IMG* resultImg = Descriptors_turn::createDemoImg(first_img, second_img);
 
 	// Рисуем линии на совмещенной картинке
-	IMG* img_drawedLine = Descriptors::drawLine(first_img, second_img, resultImg, pairs);
+	IMG* img_drawedLine = Descriptors_turn::drawLine(first_img, second_img, resultImg, pairs);
 	// нормализуем
 	IMG* img_drawedLine_normalize = img_drawedLine->normalize_COLOR();
 	// сохраняем
@@ -350,6 +350,7 @@ void lab5(String dir, String firstName, String secondName, String resultName, do
 
 int main(int argc, char** argv)
 {
+	srand(time(0));
 	unsigned int start_time = clock();
 	double test = cos(360);
 
@@ -359,7 +360,7 @@ int main(int argc, char** argv)
 
 	//lab4(_1, _2, dir, "line.jpg");
 
-	lab5(dir, "lenka_1.jpg", "lenka_turn90.jpg", "line.jpg", 2.0);
+	lab5(dir, "lenka_1.jpg", "lenka_big.jpg", "line.jpg", 2.0);
 
 	cout << "FULL TIME : " << (clock() - start_time) / 1000.0 << "\n\n\n";
 
