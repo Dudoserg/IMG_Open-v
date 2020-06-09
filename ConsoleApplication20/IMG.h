@@ -302,7 +302,7 @@ public:
 				double val_X = imgX->pixels_gray[index];
 				double val_Y = imgY->pixels_gray[index];
 			
-				double sq = atan2(val_X, val_Y);
+				double sq = atan2(val_Y, val_X);
 
 				result_gray[index] = sq;
 			}

@@ -329,6 +329,26 @@ void lab5(String dir, String firstName, String secondName, String resultName, do
 	// сохраняем
 	img_drawedLine_normalize->saveImage_COLOR(resultName, dir + "/result");
 
+
+	// Еще нарисуем направления каждой из точек
+	{
+		IMG* imgFirstArrows = descriptors_first->drawArrows(first_img);
+		IMG* imgFirstArrows_normalized = imgFirstArrows->normalize_COLOR();
+		imgFirstArrows_normalized->saveImage_COLOR("Arrows_first.jpg",dir + "/result");
+
+		IMG* imgSecondArrows = descriptors_second->drawArrows(second_img);
+		IMG* imgSecondArrows_normalized = imgSecondArrows->normalize_COLOR();
+		imgSecondArrows_normalized->saveImage_COLOR("Arrows_second.jpg" , dir + "/result");
+
+		#ifdef CLEAR_MEMORY
+		delete imgFirstArrows;
+		delete imgFirstArrows_normalized;
+
+		delete imgSecondArrows;
+		delete imgSecondArrows_normalized;
+		#endif // CLEAR_MEMORY
+	}
+
 #ifdef CLEAR_MEMORY
 	delete resultImg;
 	delete img_drawedLine;
@@ -360,7 +380,7 @@ int main(int argc, char** argv)
 
 	//lab4(_1, _2, dir, "line.jpg");
 
-	lab5(dir, "lenka_1.jpg", "lenka_big.jpg", "line.jpg", 2.0);
+	lab5(dir, "lenka_1.jpg", "lenka_turn.jpg", "line.jpg", 1.2);
 
 	cout << "FULL TIME : " << (clock() - start_time) / 1000.0 << "\n\n\n";
 

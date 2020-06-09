@@ -189,7 +189,7 @@ public:
 				tmpList->push_back(new pair<int, double>(i, local_box->at(i)));
 			}
 			// сортируем по УБЫВАНИЮ значения гистограммы
-			//tmpList.sort((first, second) -> - first.getValue().compareTo(second.getValue()));
+			//tmpList.sort((first, second) -> - first->second.compareTo(second->second));
 			// TODO
 			sort(tmpList->begin(), tmpList->end(),
 				[](const pair<int, double>* first, const pair<int, double>* second) {
@@ -654,7 +654,7 @@ public:
 
 
 	int count = 0;
-
+	static int count_nndrOk;
 
 	/**
 	 * Создаем пары интересных точек
@@ -751,6 +751,7 @@ public:
 
 			if (nndr < 0.8) {
 				cout << "    ++++++";
+				count_nndrOk++;
 				pairsList->push_back(
 					new pair<pair<InterestingPoint*, InterestingPoint*>*, double>(
 						new pair<InterestingPoint*, InterestingPoint*>(firstInterestingPoint, secondInterestingPoint),
@@ -760,7 +761,7 @@ public:
 			}
 			cout << endl;
 		}
-
+		cout << endl << endl << " count_nndrOk = " << count_nndrOk << endl << endl;
 		// Сортируем список соответствий интересных точек по возрастанию расстояния м\у точками
 		//pairsList.sort(Comparator.comparingdouble(Pair::getValue));
 		// TODO
@@ -974,81 +975,70 @@ public:
 		return rand() * ((max - min + 0.999) / RAND_MAX) + min;
 	}
 	
-	//IMG* drawArrows(IMG* resultImg) {
-	//	vector<pair<pair<int, int>*, pair<int, int>*>*>* pairs = new vector<pair<pair<int, int>*, pair<int, int>*>*>;
-	//	for (int i = 0; i < this->interestingPointList->size(); i++) {
-	//		InterestingPoint* interestingPoint = this->interestingPointList->at(i);
 
-	//		int col = interestingPoint->col;
-	//		int row = interestingPoint->row;
-	//		double fi = interestingPoint->angle_rad;
-	//		//             double fi = interestingPoint->getAngle_gradient_TEST();
-	//		//             double fi = img_Atan.getPixelWithEdge(row, col).getGray();
+	/**
+ * Рисуем направления интересных точек
+ *
+ * @param resultImg изображение, на котором мы рисуем направленияя каждой из интересных точек
+ * @return изображения с линиями
+ */
+	IMG* drawArrows(IMG* resultImg) {
+		vector<pair<pair<int, int>*, pair<int, int>*>*>* pairs = new vector<pair<pair<int, int>*, pair<int, int>*>*>;
+		for (int i = 0; i < this->interestingPointList->size(); i++) {
+			InterestingPoint* interestingPoint = this->interestingPointList->at(i);
+			int col = interestingPoint->col;
+			int row = interestingPoint->row;
+			double fi = interestingPoint->angle_rad;
+			//            final double fi = interestingPoint.getAngle_gradient_TEST();
+			//            final double fi = img_Atan.getPixelWithEdge(row, col).getGray();
 
-	//		int r = 20; // длина линии
-	//		// получаем координаты конца линии
-	//		int shift_x = (int)(r * cos(fi));
-	//		int shift_y = (int)(r * sin(fi));
+			int r = 20; // длина линии
+			// получаем координаты конца линии
+			int shift_x = (int)(r * cos(fi));
+			int shift_y = (int)(r * sin(fi));
 
-	//		int x = shift_x + col;
-	//		int y = shift_y + row;
-	//		// запоминаем координаты
-	//		pairs->push_back(new pair<pair<int, int>*, pair<int, int>*>(new pair<int,int>(row, col), new pair<int,int>(y, x)));
-	//	}
-
-	//	BufferedImage image = resultImg.getBufferedImage();
-	//	Graphics2D graphics2D = image.createGraphics();
-
-	//	for (int i = 0; i < pairs.size(); i++) {
-	//		Pair<Pair<int, int>, Pair<int, int>> pair = pairs.get(i);
-	//		int first_y = pair->first->first;   // row
-	//		int first_x = pair->first->second; // col
-
-	//		int second_y = pair->second->first;    // row
-	//		int second_x = pair->second->second;  // col
-
-	//		graphics2D.drawLine(first_x, first_y, second_x, second_y);
-	//	}
-
-	//	IMG* img = new IMG * ();
-	//	img.grabPixels(image);
-	//	img.createMyPixelsArray();
-	//	return img;
-	//}
-
-	/*static Color getRandomColor() {
-		int random = (int)(random() * 5);
-		Color color;
-		switch (random) {
-		case 0: {
-			color = Color.RED;
-			break;
+			int x = shift_x + col;
+			int y = shift_y + row;
+			// запоминаем координаты
+			pairs->push_back(
+				new pair<pair<int, int>*, pair<int, int>*>(
+					new pair<int, int>(row, col), new pair<int, int>(y, x)
+					)
+			);
 		}
-		case 1: {
-			color = Color.GREEN;
-			break;
+
+		IMG* img_forDraw = resultImg->copy();
+
+		Mat tmp_image = img_forDraw->createImage_COLOR();
+
+		for (int i = 0; i < pairs->size(); i++) {
+			pair<pair<int, int>*, pair<int, int>*>* pair = pairs->at(i);
+
+			int first_y = pair->first->first;   // row
+			int first_x = pair->first->second; // col
+
+			int second_y = pair->second->first;    // row
+			int second_x = pair->second->second;  // col
+
+	
+
+			line(
+				tmp_image,
+				Point2f(first_x, first_y),
+				Point2f(second_x, second_y),
+				Scalar(255, 255, 255)
+			);
+			
 		}
-		case 2: {
-			color = Color.BLUE;
-			break;
-		}
-		case 3: {
-			color = Color.YELLOW;
-			break;
-		}
-		case 4: {
-			color = Color.MAGENTA;
-			break;
-		}
-		case 5: {
-			color = Color.WHITE;
-			break;
-		}
-		default:
-			color = Color.WHITE;
-		}
-		return color;
-	}*/
+
+
+		img_forDraw->setMatToPixelsArray(tmp_image);
+
+
+		return img_forDraw;
+	}
+
 
 };
 double Descriptors_turn::LEVEL = 0.048;
+int Descriptors_turn::count_nndrOk = 0;

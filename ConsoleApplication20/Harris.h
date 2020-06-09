@@ -27,6 +27,8 @@ public:
 	int POINT_COUNT_TOP_POWERFUL = 200;
 	int POINT_COUNT_TOP_ANMS = 200;
 
+	double TOP_X_LEVEL = 0.95;
+
 	vector<pair<int, int>*>* indexUnicalPoint = new vector<pair<int, int>*>;
 
 
@@ -163,7 +165,7 @@ public:
 		});
 
 		// получаем значение Threshold
-		HarrisPixel* top_X = harrisPixelList_sortedLmin->at((int)(harrisPixelList_sortedLmin->size() * 0.9));
+		HarrisPixel* top_X = harrisPixelList_sortedLmin->at((int)(harrisPixelList_sortedLmin->size() * TOP_X_LEVEL));
 		//this.printFile(harrisPixelList_sortedLmin, "0.85_");
 		cout << ("====================================top_X===========================") << endl;
 		cout << ("Treshhold = " + to_string(top_X->L_min)) << endl ;
@@ -177,7 +179,15 @@ public:
 			else
 				countOK++;
 		}
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+		for (int i = 0; i < harrisPixelList->size(); i++) {
+			HarrisPixel* harrisPixel = harrisPixelList->at(i);
+			if (harrisPixel->row < 10 || harrisPixel->col < 10)
+				harrisPixel->isActive = false;
+			if (img->height - 10 < harrisPixel->row || img->width - 10 < harrisPixel->col)
+				harrisPixel->isActive = false;
+		}
 
 		//----------------------------------------------------------------------------------------------------
 		// Требование локального максимума
