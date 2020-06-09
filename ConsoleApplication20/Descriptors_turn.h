@@ -129,28 +129,8 @@ public:
 						continue;
 					}
 
-					//                 Pixels first_gradient = img_gradient.getPixelWithEdge(y, x + 1);
-					//                 Pixels second_gradient = img_gradient.getPixelWithEdge(y, x - 1);
-					//                 Pixels third_gradient = img_gradient.getPixelWithEdge(y + 1, x);
-					//                 Pixels fourth_gradient = img_gradient.getPixelWithEdge(y - 1, x);
-					//
-					//                double _gradient_value = sqrt(
-					//                        pow((first_gradient.getGray() - second_gradient.getGray()), 2) +
-					//                                pow((third_gradient.getGray() - fourth_gradient.getGray()), 2)
-					//                );
-					//
-					//                 Pixels first_atan = img_Atan.getPixelWithEdge(y, x + 1);
-					//                 Pixels second_atan = img_Atan.getPixelWithEdge(y, x - 1);
-					//                 Pixels third_atan = img_Atan.getPixelWithEdge(y + 1, x);
-					//                 Pixels fourth_atan = img_Atan.getPixelWithEdge(y - 1, x);
-					//
-					//                double _rad = atan2(
-					//                        first_atan.getGray() - second_atan.getGray(),
-					//                        third_atan.getGray() - fourth_atan.getGray()
-					//                );
-
-										// Получаем направление градиента в соседнем пикселе
-										// Из картинки содержащий направления градиента получаем значение для текущего пикселя
+					// Получаем направление градиента в соседнем пикселе
+					// Из картинки содержащий направления градиента получаем значение для текущего пикселя
 					double _rad = img_Atan->getGrayWithEdge(y, x);
 
 					// Получаем величину градиента в соседнем пикселе
@@ -421,87 +401,8 @@ public:
 						->at(second_box_num) = secondBoxOldValue + second_value * core;
 				}
 			}
-			/*  for (int outY = 0; outY < countRegion; outY++) {
-				  for (int outX = 0; outX < countRegion; outX++) {
-					  // вычисляем индекс гистограммы ( для адресации в двумерном массиве)
-					  int indexRegionY = outY - half_countRegion;
-					  int indexRegionX = outY - half_countRegion;
 
-					  // инициалириуем гистограмму
-					  List<double> box = new ArrayList<>();
-					  for (int i = 0; i < N; i++) {
-						  box.add(0.0);
-					  }
-					  // теперь идем по пикселям текущей гистограммы
-					  for (int inY = 0; inY < sizeRegion; inY++) {
-						  for (int inX = 0; inX < sizeRegion; inX++) {
-							  // получаем смещение пикселей в текущей гистограммы относительно центра ВСЕЙ сетки
-							  int shift_x = indexRegionX * sizeRegion;
-							  int shift_y = indexRegionY * sizeRegion;
-
-							  double tmp = 0.0;
-
-							  // Пересчет координат в соответствии с направлением интересной точки
-							  tmp = shift_x * cos(angle_rad) + shift_y * sin(angle_rad);
-							  // новое смещение по Х
-							  int new_shift_x = (int) round(tmp);
-
-							  // Пересчет координат в соответствии с направлением интересной точки
-							  tmp = shift_y * cos(angle_rad) - shift_x * sin(angle_rad);
-							  // новое смещение по Y
-							  int new_shift_y = (int) round(tmp);
-
-							  // кастим смещение в глобальные координаты по изображению
-							  // x\y  центр сетки
-							  // inX\inY смещение в текущей гистограмме
-							  // new_shift_x\new_shift_y
-
-							  int index_X = col + inX + new_shift_x;
-							  int index_Y = row + inY + new_shift_y;
-
-							  // получаем индекс коробки и значение которое кладем туда
-							   List<Pair<int, double>> boxNumValue = getBoxNumValue(
-									  N,      // количество корзин
-									  box_size,   // размер коробки
-									  // угол направление градиента в радианах
-									  img_Atan.getPixelWithEdge(index_Y, index_X).getGray() - angle_rad,
-									  // величина градиента
-									  img_gradient.getPixelWithEdge(index_Y, index_X).getGray()
-							  );
-							  // индекс первой коробки
-							   int first_box_num = boxNumValue.get(0)->first;
-							  // значениек которое кладем туда
-							   double first_value = boxNumValue.get(0)->second;
-
-							  // аналогично со второй коробкой
-							   int second_box_num = boxNumValue.get(1)->first;
-							   double second_value = boxNumValue.get(1)->second;
-
-  //                            addValueToBox(
-  //                                    box,
-  //                                    img_Atan.getPixelWithEdge(index_Y, index_X),
-  //                                    img_gradient.getPixelWithEdge(index_Y, index_X)
-  //                            );
-
-							  // коэффициент ядра гаусса, не знаю нужен он или нет
-							  double core = coreGauss
-									  .get(shift_y + (sizeRegion * countRegion) / 2)
-									  .get(shift_x + (sizeRegion * countRegion) / 2);
-
-							  // добавлеяем в коробки текущей гистограммы
-							  box.set(first_box_num, box.get(first_box_num) + first_value);
-							  box.set(second_box_num, box.get(second_box_num) + second_value);
-
-							  System.out.print("");
-						  }
-					  }
-					  // сохраняем гистограмму
-					  boxes.get(outY).set(outX, box);
-					  System.out.print("");
-				  }
-			  }*/
-
-			  // Делаем вектор размерности 1 * 128
+			// Делаем вектор размерности 1 * 128
 			vector<double>* tmp_vector = new vector<double>;
 			for (int i = 0; i < countRegion; i++) {
 				for (int j = 0; j < countRegion; j++) {
@@ -541,9 +442,8 @@ public:
 			if (rad > 2 * M_PI)
 				rad -= 2 * M_PI;
 		} while (rad < 0 || rad > 2 * M_PI);
-		//        System.out.println(rad);
 
-				// рассчитываем размер коробки ( гистограммы )
+		// рассчитываем размер коробки ( гистограммы )
 		double local_BOX_HALFSIZE = local_BOX_SIZE / 2;
 		// определяем, в какую коробку будем класть
 		int num_half = (int)(rad / local_BOX_HALFSIZE);
@@ -571,12 +471,9 @@ public:
 		double second_box_distance =
 			abs((second_box_num * local_BOX_SIZE + local_BOX_HALFSIZE) - rad);
 
-		//        count++;
-		//        if (count == 325)
-		//            System.out.println();
 
-				// Если номер корзины выходит за границы, круга
-				// т.е. если его индекс 8 ( а всего корзин 8, нумерация идет с 0)
+		// Если номер корзины выходит за границы, круга
+		// т.е. если его индекс 8 ( а всего корзин 8, нумерация идет с 0)
 		if (second_box_num == local_COUNT_BOX)
 			second_box_num = 0; // то присваиваем еденицы
 		else if (second_box_num == -1)  // если -1 то в последнюю корзину кладем
@@ -594,22 +491,12 @@ public:
 		double first_value = first_value_part * gradient_value;
 		double second_value = second_value_part * gradient_value;
 
-		//        try {
-		//            // добавляем значения в корзины
-		//            box.set(first_box_num, box.get(first_box_num) + first_value);
-		//            box.set(second_box_num, box.get(second_box_num) + second_value);
-		//        } catch (IndexOutOfBoundsException e) {
-		//            System.out.println();
-		//        }
-
 		vector<pair<int, double>*>* result = new vector<pair<int, double>*>;
 		result->push_back(new pair<int, double>(first_box_num, first_value));
 		result->push_back(new pair<int, double>(second_box_num, second_value));
 
 		return result;
 	}
-
-
 
 
 	/**
@@ -924,8 +811,6 @@ public:
 			}
 		
 		}
-
-		// Ïîìåùàåì èçîáðàæåíèå â ìàññèâ ïèêñåëåé
 		img_forDraw->setMatToPixelsArray(tmp_image);
 
 
@@ -1032,8 +917,6 @@ public:
 			int second_y = pair->second->first;    // row
 			int second_x = pair->second->second;  // col
 
-	
-
 			line(
 				tmp_image,
 				Point2f(first_x, first_y),
@@ -1043,15 +926,14 @@ public:
 			
 		}
 
-
 		img_forDraw->setMatToPixelsArray(tmp_image);
 
 
 		return img_forDraw;
 	}
 
-
 };
+
 double Descriptors_turn::LEVEL = 0.05;
 int Descriptors_turn::count_nndrOk = 0;
 bool Descriptors_turn::IS_COLOR_LINE = true;
