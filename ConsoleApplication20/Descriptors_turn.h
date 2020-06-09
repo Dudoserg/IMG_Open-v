@@ -19,7 +19,7 @@ public:
 	 // которого вообще нет на второй картинке
 	 // но хоть какое то соответствие все равно будут строиться ( хоть и заведомо лишние)
 	static double LEVEL;
-	bool IS_COLOR_LINE = true;
+	static bool IS_COLOR_LINE ;
 	//    static double LEVEL =  0.2;
 	//    static double LEVEL =  0.003;
 
@@ -903,15 +903,26 @@ public:
 			InterestingPoint* first = current->first;
 			InterestingPoint* second = current->second;
 
-			double* colors = getRandomColor();
-			// Ðèñóåì íà íåì ëèíèþ
-			line(
-				tmp_image,
-				Point2f(first->descriptor->x, first->descriptor->y),
-				Point2f(second->descriptor->x + firstImg->width, second->descriptor->y),
-				Scalar(colors[0], colors[1], colors[2])
-			);
-			delete[] colors;
+			if (IS_COLOR_LINE) {
+				double* colors = getRandomColor();
+
+				line(
+					tmp_image,
+					Point2f(first->descriptor->x, first->descriptor->y),
+					Point2f(second->descriptor->x + firstImg->width, second->descriptor->y),
+					Scalar(colors[0], colors[1], colors[2])
+				);
+				delete[] colors;
+			}
+			else {
+				line(
+					tmp_image,
+					Point2f(first->descriptor->x, first->descriptor->y),
+					Point2f(second->descriptor->x + firstImg->width, second->descriptor->y),
+					Scalar(255, 255, 255)
+				);
+			}
+		
 		}
 
 		// Ïîìåùàåì èçîáðàæåíèå â ìàññèâ ïèêñåëåé
@@ -921,6 +932,7 @@ public:
 		return img_forDraw;
 	}
 
+	
 	static double* getRandomColor() {
 		double* result = new double[3];
 		
@@ -1040,5 +1052,6 @@ public:
 
 
 };
-double Descriptors_turn::LEVEL = 0.048;
+double Descriptors_turn::LEVEL = 0.05;
 int Descriptors_turn::count_nndrOk = 0;
+bool Descriptors_turn::IS_COLOR_LINE = true;

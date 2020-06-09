@@ -380,7 +380,7 @@ int main(int argc, char** argv)
 
 	//lab4(_1, _2, dir, "line.jpg");
 
-	lab5(dir, "lenka_1.jpg", "lenka_turn.jpg", "line.jpg", 1.2);
+	lab5(dir, "Descriptors_turn/0.jpg", "Descriptors_turn/30.jpg", "line.jpg", 1.2);
 
 	cout << "FULL TIME : " << (clock() - start_time) / 1000.0 << "\n\n\n";
 
