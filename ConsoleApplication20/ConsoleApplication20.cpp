@@ -114,6 +114,39 @@ vector<Octava*>* testOctavi(IMG* img, string dir, double sigma0, double sigma1, 
 		}
 	}
 
+	// + 3 картинки
+	list_sigma->push_back(list_sigma->at(list_sigma->size() - 1) * k);
+	list_sigma->push_back(list_sigma->at(list_sigma->size() - 1) * k);
+	list_sigma->push_back(list_sigma->at(list_sigma->size() - 1) * k);
+
+	for (int octava_i = 0; octava_i < countOctav; octava_i++) {
+		Octava* currentOctava = list_octava->at(octava_i);
+		sigmaGlobal = currentOctava->images->at(currentOctava->images->size() - 1)->globalSigma;
+		for (int i = s; i < s + 3; i++) {
+			Pyramid_IMG* pyramid_img = new Pyramid_IMG();
+			pyramid_img->sigma = list_sigma->at(i);
+			pyramid_img->layerNum = i;
+			pyramid_img->octavaNum = octava_i;
+
+			// Первая глобальная сигма в октаве равна последней сигме в предыдущей октаве
+			if (i == 0)
+				pyramid_img->globalSigma = sigmaGlobal;
+			else
+				pyramid_img->globalSigma = sigmaGlobal = sigmaGlobal * k;
+			currentOctava->images->push_back(pyramid_img);
+		}
+		for (int i = s; i < s + 3; i++) {
+			Pyramid_IMG* pyramid_prev = currentOctava->images->at(i - 1);
+			Pyramid_IMG* pyramid_current = currentOctava->images->at(i);
+
+			double sigma = sqrt(pyramid_current->sigma * pyramid_current->sigma - pyramid_prev->sigma * pyramid_prev->sigma);
+
+			IMG* img_new = pyramid_prev->img->gaussFilter(sigma);
+			IMG* img_normalized_new = img_new->normalize_COLOR();
+			pyramid_current->img = img_normalized_new;
+		}
+	}
+
 	/*for (int i = 0; i < list_octava->size(); ++i) {
 		vector<Pyramid_IMG*>* images = (*list_octava)[i]->images;
 		for (int j = 0; j < images->size(); ++j) {
@@ -164,7 +197,7 @@ void lab3() {
 
 
 	if (isOctavi) {
-		vector<Octava*>* list_octava = testOctavi(img_normalize, dir + "/result", 0.5, 1.2, 5, 4);
+		vector<Octava*>* list_octava = testOctavi(img_normalize, dir + "/result", 0.5, 1.6, 3, 5);
 		double kek = l_func(list_octava, 500, 500, 5.0, IMG::COLOR::RED);
 		cout << "L = " << kek << "\n";
 	}
@@ -626,8 +659,8 @@ vector<Octava*>* Lab6Calculate(IMG* img_first, int octav) {
 
 void Lab6() {
 	String dir = "C:/_img/Lab6";
-	String firstPath = dir + "/" + "butterfly(0.6).jpg";
-	String secondPath = dir + "/" + "butterfly(0.3).jpg";
+	String firstPath = dir + "/" + "bridge_1.jpg";
+	String secondPath = dir + "/" + "bridge_2.jpg";
 
 	//        String dir = "images_source/Lab6";
 	//        String firstPath = "images_source" + "/" + "lenka_turn.jpg";
@@ -641,22 +674,49 @@ void Lab6() {
 
 	vector<Octava*>* octavas_first = Lab6Calculate(img_first, 3);
 
-	//        // saveDog
-	//        for (Octava octava : octavas_first) {
-	//            for (int i = 0; i < octava.dog.size(); i++) {
-	//                DoG_IMG doG_img = octava.dog.get(i);
-	//                Pyramid_IMG image = octava.images.get(i);
-	//                final IMG tmp = doG_img.img.normalize_GRAY();
-	//                tmp.saveToFile_GRAY(getPath(dir, "result", "dog", image.octavaNum + "_" + image.layerNum + ".jpg"));
-	//            }
-	//        }
-	//        // saveOctav
-	//        for (Octava octava : octavas_first) {
-	//            for (Pyramid_IMG image : octava.images) {
-	//                final IMG tmp = image.img.normalize_COLOR();
-	//                tmp.saveToFile_COLOR(getPath(dir, "result", "octavi", image.octavaNum + "_" + image.layerNum + ".jpg"));
-	//            }
-	//        }
+	//saveDog
+	for (int octava_index = 0; octava_index < octavas_first->size(); octava_index++) {
+		Octava* octava = octavas_first->at(octava_index);
+
+		for (int i = 0; i < octava->dog->size(); i++) {
+			DoG_IMG* image = octava->dog->at(i);
+			Pyramid_IMG* pyramid_img = octava->images->at(i);
+			IMG* tmp = image->img->normalize_GRAY();
+			//tmp->saveImage_GRAY(getPath(dir, "result", "dog", pyramid_img.octavaNum + "_" + pyramid_img.layerNum + ".jpg"));
+			tmp->saveImage_GRAY(to_string(pyramid_img->octavaNum) + "_" + to_string(pyramid_img->layerNum) + ".jpg","C:/_img/Lab6/result/dog");
+		}
+	}
+
+	// saveOctav
+	for (int octava_index = 0; octava_index < octavas_first->size(); octava_index++) {
+		Octava* octava = octavas_first->at(octava_index);
+		for (int image_index = 0; image_index < octava->images->size(); image_index++) {
+			Pyramid_IMG* image = octava->images->at(image_index);
+			if(image == NULL)
+				continue;
+			IMG* tmp = image->img->normalize_COLOR();
+			tmp->saveImage_COLOR(to_string(image->octavaNum) + "_" + to_string(image->layerNum) + ".jpg", "C:/_img/Lab6/result/octavi");
+		}
+	}
+
+
+	//for (int octava_index = 0; octava_index < octavas_first->size(); octava_index) {
+	//	Octava* octava = octavas_first->at(octava_index);
+
+	//    for (int i = 0; i < octava->dog->size(); i++) {
+	//        DoG_IMG doG_img = octava.dog.get(i);
+	//        Pyramid_IMG image = octava.images.get(i);
+	//        final IMG tmp = doG_img.img.normalize_GRAY();
+	//        tmp.saveToFile_GRAY(getPath(dir, "result", "dog", image.octavaNum + "_" + image.layerNum + ".jpg"));
+	//    }
+	//}
+	//// saveOctav
+	//for (Octava octava : octavas_first) {
+	//    for (Pyramid_IMG image : octava.images) {
+	//        final IMG tmp = image.img.normalize_COLOR();
+	//        tmp.saveToFile_COLOR(getPath(dir, "result", "octavi", image.octavaNum + "_" + image.layerNum + ".jpg"));
+	//    }
+	//}
 			// saveDog CIRCLE
 	for (int octava_first_index = 0; octava_first_index < octavas_first->size(); octava_first_index++) {
 		Octava* octava = octavas_first->at(octava_first_index);

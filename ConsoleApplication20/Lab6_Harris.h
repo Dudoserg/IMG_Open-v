@@ -92,7 +92,6 @@ public:
 		//delete img;
 
 		IMG* img = img_gaussFilter_separable->normalize_COLOR();
-		img->saveImage_COLOR("separablegavno.jpg", "C:/_img/Lab6/result");
 #ifdef CLEAR_MEMORY
 		delete img_gaussFilter_separable;
 #endif // CLEAR_MEMORY
