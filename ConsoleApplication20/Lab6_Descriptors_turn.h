@@ -8,7 +8,7 @@
 #include <vector>
 #include <fstream>
 #include "InterestingPoint.h"
-
+#include "InterCell_InterpolationResult.h"
 using namespace std;
 
 class Lab6_Descriptors_turn
@@ -80,6 +80,7 @@ public:
 //        this->calculateDescriptors_firstTry();
 		//this->calculateDescriptors_secondTry();    // чета я тут перемудрил
 		this->calculateDescriptors_thirdTry();
+
 
 		// нормализуем дескрипторы
 		for (int i = 0; i < this->interestingPointList->size(); i++) {
@@ -280,9 +281,8 @@ public:
 	int countInCircle = 0;
 	int countFailInCircle = 0;
 	int countALL = 0;
-	/**
-	 * Расчет десктипторов интересных точек
-	 */
+	
+
 	void calculateDescriptors_thirdTry() {
 		int local_COUNT_BOX_ANGLE = 36;        // количество корзин
 
@@ -333,7 +333,9 @@ public:
 			int col = interestingPoint->col;
 			// получаем направление данной точки в радианах
 			double angle_rad = interestingPoint->angle_rad;
+#ifdef DEBUG_ANGLE_RAD
 			cout << "angle_rad = " << angle_rad << endl;
+#endif
 
 			countInCircle = 0;
 			countFailInCircle = 0;
@@ -411,6 +413,170 @@ public:
 						->at(gistogram_index_y)
 						->at(gistogram_index_x)
 						->at(second_box_num) = secondBoxOldValue + second_value * core;
+				}
+			}
+
+			// Делаем вектор размерности 1 * 128
+			vector<double>* tmp_vector = new vector<double>;
+			for (int i = 0; i < countRegion; i++) {
+				for (int j = 0; j < countRegion; j++) {
+					for (int n = 0; n < N; n++) {
+						tmp_vector->push_back(boxes->at(i)->at(j)->at(n));
+					}
+				}
+			}
+
+			// создаем объект - дескриптор
+			Descriptor* d = new Descriptor(col, row, tmp_vector);
+			//descriptorList.add(d);
+			interestingPoint->descriptor = d;
+		}
+
+	}
+	
+
+	void calculateDescriptors_LAB7() {
+		int local_COUNT_BOX_ANGLE = 36;        // количество корзин
+
+		// Размер корзины в радианах
+		double local_BOX_SIZE = 2 * M_PI / local_COUNT_BOX_ANGLE;
+		// полуразмер корзины в радианах
+		double local_BOX_HALFSIZE = local_BOX_SIZE / 2;
+
+		// размер сетки
+		int size = (sizeRegion * countRegion);
+		// полуразмер сетки
+		int halfSize = size / 2;
+
+
+		// Получаем ядро гаусса соответствующего сетке размера
+		vector<vector<double>*>* coreGauss = IMG::static_getGaussMatrix(sizeRegion * countRegion);
+
+		// Итерация по интересным точкам
+		for (int q = 0; q < interestingPointList->size(); q++) {
+
+
+			// тут идиотский массив трехмерный,
+			// двумерный в котором еще одно измерение ( гистограмма )
+			// * * * *
+			// * * * *
+			// * * * *
+			// * * * *
+			vector<vector<vector<double>*>*>* boxes = new vector<vector<vector<double>*>*>;
+
+			// инициализация массива
+			for (int i = 0; i < sizeRegion; i++) {
+				vector<vector<double>*>* line = new vector<vector<double>*>;
+				for (int j = 0; j < sizeRegion; j++) {
+					vector<double>* gist = new vector<double>;
+					for (int g = 0; g < N; g++) {
+						gist->push_back(0.0);
+					}
+					line->push_back(gist);
+				}
+				boxes->push_back(line);
+			}
+
+
+			// рассматриваемая интересная точка
+			InterestingPoint* interestingPoint = interestingPointList->at(q);
+			// Получаем ее координаты
+			int row = interestingPoint->row;
+			int col = interestingPoint->col;
+			// получаем направление данной точки в радианах
+			double angle_rad = interestingPoint->angle_rad;
+			//cout << "angle_rad = " << angle_rad << endl;
+
+			countInCircle = 0;
+			countFailInCircle = 0;
+			countALL = 0;
+			for (int y = -halfSize; y < halfSize; y++) {
+				for (int x = -halfSize; x < halfSize; x++) {
+					countALL++;
+
+					int global_Y_notTurn = row + y;
+					int global_X_notTurn = col + x;
+
+					double tmp = 0.0;
+					// Пересчет координат в соответствии с направлением интересной точки
+					tmp = x * cos(angle_rad) + y * sin(angle_rad);
+					// новое смещение по Х
+					int new_x = (int)(tmp);
+
+					// Пересчет координат в соответствии с направлением интересной точки
+					tmp = y * cos(angle_rad) - x * sin(angle_rad);
+					// новое смещение по Y
+					int new_y = (int)(tmp);
+
+					// если вышли за границу круга, то не принимаем во внимание данный пиксель
+					if (calculateDistance(new_x, new_y, 0, 0) >= halfSize) {
+						countFailInCircle++;
+						continue;
+					}
+					countInCircle++;
+					// Считаем индекс гистограммы куда будем прибавлять значение текущего пикселя
+
+					vector<InterCell_InterpolationResult*>* gistogramsIndexAndValues
+						= getGistogramsIndexAndValues(new_y, new_x, halfSize);
+
+					/*int gistogram_index_y = (new_y + halfSize) / sizeRegion;
+					int gistogram_index_x = (new_x + halfSize) / sizeRegion;*/
+
+					int index_Y = row + new_y + kek;
+					int index_X = col + new_x + kek;
+
+					// получаем индекс коробки и значение которое кладем туда
+					vector<pair<int, double>*>* boxNumValue = getBoxNumValue(
+						N,      // количество корзин
+						box_size,   // размер коробки
+						// угол направление градиента в радианах
+						img_Atan->getGrayWithEdge(global_Y_notTurn, global_X_notTurn) - angle_rad,
+						// величина градиента
+						img_gradient->getGrayWithEdge(global_Y_notTurn, global_X_notTurn)
+					);
+					// индекс первой коробки
+					int first_box_num = boxNumValue->at(0)->first;
+					// значениек которое кладем туда
+					double first_value_imutable = boxNumValue->at(0)->second;
+
+					// аналогично со второй коробкой
+					int second_box_num = boxNumValue->at(1)->first;
+					double second_value_imutable = boxNumValue->at(1)->second;
+
+					for (int g_i = 0; g_i < gistogramsIndexAndValues->size(); g_i++) {
+						InterCell_InterpolationResult* gistogramsIndexAndValue = gistogramsIndexAndValues->at(g_i);
+						int gistogram_index_y = gistogramsIndexAndValue->index_y;
+						int gistogram_index_x = gistogramsIndexAndValue->index_x;
+						double fraction = gistogramsIndexAndValue->fraction;
+						double first_value = first_value_imutable * fraction;   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+						double second_value = second_value_imutable * fraction; //!!!!!!!!!!!!!!!!second value перетирается каждый раз
+					
+
+						// коэффициент ядра гаусса, не знаю нужен он или нет
+						double core = coreGauss
+							->at(new_y + (sizeRegion * countRegion) / 2)
+							->at(new_x + (sizeRegion * countRegion) / 2);
+
+						// добавлеяем в коробки текущей гистограммы
+						//box.set(first_box_num, box.get(first_box_num) + first_value);
+						double firstBoxOldValue = boxes
+							->at(gistogram_index_y)
+							->at(gistogram_index_x)
+							->at(first_box_num);
+						boxes
+							->at(gistogram_index_y)
+							->at(gistogram_index_x)
+							->at(first_box_num) = firstBoxOldValue + first_value * core;
+						//box.set(second_box_num, box.get(second_box_num) + second_value);
+						double secondBoxOldValue = boxes
+							->at(gistogram_index_y)
+							->at(gistogram_index_x)
+							->at(second_box_num);
+						boxes
+							->at(gistogram_index_y)
+							->at(gistogram_index_x)
+							->at(second_box_num) = secondBoxOldValue + second_value * core;
+					}
 				}
 			}
 
@@ -647,10 +813,13 @@ public:
 			// проверка на многозначность
 			if (distanceList->size() > 1) {
 				double nndr = distanceList->at(0)->second / distanceList->at(1)->second;
+#ifdef DEBUG_NNDR
 				cout << "nndr = " << nndr;
-
+#endif
 				if (nndr < 0.8) {
+#ifdef DEBUG_NNDR
 					cout << "    ++++++";
+#endif
 					count_nndrOk++;
 					pairsList->push_back(
 						new pair<pair<InterestingPoint*, InterestingPoint*>*, double>(
@@ -815,10 +984,14 @@ public:
 			// проверка на многозначность
 			if (distanceList->size() > 1) {
 				double nndr = distanceList->at(0)->second / distanceList->at(1)->second;
+#ifdef DEBUG_NNDR
 				cout << "nndr = " << nndr;
+#endif
 
 				if (nndr < 0.8) {
+#ifdef DEBUG_NNDR
 					cout << "    ++++++";
+#endif
 					count_nndrOk++;
 					pairsList->push_back(
 						new pair<pair<InterestingPoint*, InterestingPoint*>*, double>(
@@ -1125,6 +1298,96 @@ public:
 
 		return img_forDraw;
 	}
+
+
+
+
+
+	vector<InterCell_InterpolationResult*>* getGistogramsIndexAndValues(double new_y, double new_x, double halfSize) {
+		int current_gistogram_index_y = (int)((new_y + halfSize) / sizeRegion);     // индекс гистограммы [ 0 ; 3 ]
+		int current_gistogram_index_x = (int)((new_x + halfSize) / sizeRegion);     // индекс гистограммы
+
+		double current_gistogram_center_x = (current_gistogram_index_x * sizeRegion + (sizeRegion / 2.0));
+		double current_gistogram_center_y = (current_gistogram_index_y * sizeRegion + (sizeRegion / 2.0));
+
+		new_y += halfSize;
+		new_x += halfSize;
+		// находим ближайщий по вертикали, если он вообще есть
+		int index_horisontal_y = -999;
+		int index_horisontal_x = -999;
+
+		int index_vertical_y = -999;
+		int index_vertical_x = -999;
+
+		int index_diagonal_y = -999;
+		int index_diagonal_x = -999;
+		{
+			int index_x = -999999;
+			int index_y = current_gistogram_index_y;
+			// проверяем ячейку слева
+			if (new_x < current_gistogram_center_x) {
+				// слева, но проверим чтоб левая ячейка не выходила за границу
+				// if ( current_gistogram_index_x - 1 >= 0) {
+				index_x = current_gistogram_index_x - 1;
+				//}
+			}
+			else if (new_x > current_gistogram_center_x) {
+				// справа, но проверим чтоб правая ячейка не выходила за границу
+				//if ( current_gistogram_index_x + 1 <= 3) {
+				index_x = current_gistogram_index_x + 1;
+				//}
+			}
+			index_horisontal_x = index_x;
+			index_horisontal_y = index_y;
+		}
+		// находим ближайщий по вертикали, если он вообще есть
+		{
+			int index_x = current_gistogram_index_x;
+			int index_y = -999999;
+			// проверяем ячейку сверху
+			if (new_y < current_gistogram_center_y) {
+				// знач сверху, но проверим чтоб верхняя ячейка не выходила за границу
+				// if ( current_gistogram_index_y - 1 >= 0) {
+				index_y = current_gistogram_index_y - 1;
+				//}
+			}
+			else if (new_y > current_gistogram_center_x) {
+				// снизу, но проверим чтоб нижняя ячейка не выходила за границу
+				//if ( current_gistogram_index_y + 1 <= 3) {
+				index_y = current_gistogram_index_y + 1;
+				//}
+			}
+			index_vertical_x = index_x;
+			index_vertical_y = index_y;
+		}
+		index_diagonal_x = index_horisontal_x;
+		index_diagonal_y = index_vertical_y;
+
+		double c1 = abs(((index_vertical_y * sizeRegion) + (sizeRegion / 2.0)) - new_y);
+		double c2 = sizeRegion - c1;
+		double c3 = abs(((index_horisontal_x * sizeRegion) + (sizeRegion / 2.0)) - new_x);
+		double c4 = sizeRegion - c3;
+
+		vector<InterCell_InterpolationResult*>* resultList = new vector<InterCell_InterpolationResult*>;
+		if (index_horisontal_x >= 0 && index_horisontal_x <= 3 && index_horisontal_y >= 0 && index_horisontal_y <= 3) {
+			double value = (c1 / sizeRegion) * (c4 / sizeRegion);
+			resultList->push_back(new InterCell_InterpolationResult(index_horisontal_y, index_horisontal_x, value, "horisontal"));
+		}
+		if (index_vertical_x >= 0 && index_vertical_x <= 3 && index_vertical_y >= 0 && index_vertical_y <= 3) {
+			double value = (c3 / sizeRegion) * (c2 / sizeRegion);
+			resultList->push_back(new InterCell_InterpolationResult(index_vertical_y, index_vertical_x, value, "vertical"));
+		}
+		if (index_diagonal_x >= 0 && index_diagonal_x <= 3 && index_diagonal_y >= 0 && index_diagonal_y <= 3) {
+			double value = (c2 / sizeRegion) * (c4 / sizeRegion);
+			resultList->push_back(new InterCell_InterpolationResult(index_diagonal_y, index_diagonal_x, value, "diagonal"));
+		}
+		double currentValue = (c1 / sizeRegion) * (c3 / sizeRegion);
+		resultList->push_back(new InterCell_InterpolationResult(current_gistogram_index_y, current_gistogram_index_x, currentValue, "current"));
+
+		return resultList;
+	}
+
+
 
 };
 

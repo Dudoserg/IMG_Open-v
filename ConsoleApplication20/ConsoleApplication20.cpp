@@ -29,6 +29,10 @@
 using namespace std;
 using namespace cv;
 
+double EXTREMUM_LEVEL = 0.008;
+
+bool SAVEDOG = false;
+
 bool isMoravec = false;
 bool isHarris = true;
 bool isOctavi = false;
@@ -197,7 +201,7 @@ void lab3() {
 
 
 	if (isOctavi) {
-		vector<Octava*>* list_octava = testOctavi(img_normalize, dir + "/result", 0.5, 1.6, 3, 5);
+		vector<Octava*>* list_octava = testOctavi(img_normalize, dir + "/result", 0.5, 1.6, 4, 5);
 		double kek = l_func(list_octava, 500, 500, 5.0, IMG::COLOR::RED);
 		cout << "L = " << kek << "\n";
 	}
@@ -431,7 +435,7 @@ vector<double>* findMaxMin(IMG* img, int r, int c, boolean isCheckCenter) {
 
 vector<Octava*>* Lab6Calculate(IMG* img_first, int octav) {
 
-	double EXTREMUM_LEVEL = 0.02;
+	
 
 	vector<Octava*>* octavas_first = testOctavi(img_first, "C:/_img/Lab6/result", 0.5, 1.6, octav, 5);
 
@@ -659,8 +663,8 @@ vector<Octava*>* Lab6Calculate(IMG* img_first, int octav) {
 
 void Lab6() {
 	String dir = "C:/_img/Lab6";
-	String firstPath = dir + "/" + "butterfly.jpg";
-	String secondPath = dir + "/" + "butterfly(0.3).jpg";
+	String firstPath = dir + "/" + "bridge_1.jpg";
+	String secondPath = dir + "/" + "bridge_2.jpg";
 
 	//        String dir = "images_source/Lab6";
 	//        String firstPath = "images_source" + "/" + "lenka_turn.jpg";
@@ -674,28 +678,30 @@ void Lab6() {
 
 	vector<Octava*>* octavas_first = Lab6Calculate(img_first, 3);
 
-	//saveDog
-	for (int octava_index = 0; octava_index < octavas_first->size(); octava_index++) {
-		Octava* octava = octavas_first->at(octava_index);
+	if (SAVEDOG) {
+		//saveDog
+		for (int octava_index = 0; octava_index < octavas_first->size(); octava_index++) {
+			Octava* octava = octavas_first->at(octava_index);
 
-		for (int i = 0; i < octava->dog->size(); i++) {
-			DoG_IMG* image = octava->dog->at(i);
-			Pyramid_IMG* pyramid_img = octava->images->at(i);
-			IMG* tmp = image->img->normalize_GRAY();
-			//tmp->saveImage_GRAY(getPath(dir, "result", "dog", pyramid_img.octavaNum + "_" + pyramid_img.layerNum + ".jpg"));
-			tmp->saveImage_GRAY(to_string(pyramid_img->octavaNum) + "_" + to_string(pyramid_img->layerNum) + ".jpg","C:/_img/Lab6/result/dog");
+			for (int i = 0; i < octava->dog->size(); i++) {
+				DoG_IMG* image = octava->dog->at(i);
+				Pyramid_IMG* pyramid_img = octava->images->at(i);
+				IMG* tmp = image->img->normalize_GRAY();
+				//tmp->saveImage_GRAY(getPath(dir, "result", "dog", pyramid_img.octavaNum + "_" + pyramid_img.layerNum + ".jpg"));
+				tmp->saveImage_GRAY(to_string(pyramid_img->octavaNum) + "_" + to_string(pyramid_img->layerNum) + ".jpg", "C:/_img/Lab6/result/dog");
+			}
 		}
-	}
 
-	// saveOctav
-	for (int octava_index = 0; octava_index < octavas_first->size(); octava_index++) {
-		Octava* octava = octavas_first->at(octava_index);
-		for (int image_index = 0; image_index < octava->images->size(); image_index++) {
-			Pyramid_IMG* image = octava->images->at(image_index);
-			if(image == NULL)
-				continue;
-			IMG* tmp = image->img->normalize_COLOR();
-			tmp->saveImage_COLOR(to_string(image->octavaNum) + "_" + to_string(image->layerNum) + ".jpg", "C:/_img/Lab6/result/octavi");
+		// saveOctav
+		for (int octava_index = 0; octava_index < octavas_first->size(); octava_index++) {
+			Octava* octava = octavas_first->at(octava_index);
+			for (int image_index = 0; image_index < octava->images->size(); image_index++) {
+				Pyramid_IMG* image = octava->images->at(image_index);
+				if (image == NULL)
+					continue;
+				IMG* tmp = image->img->normalize_COLOR();
+				tmp->saveImage_COLOR(to_string(image->octavaNum) + "_" + to_string(image->layerNum) + ".jpg", "C:/_img/Lab6/result/octavi");
+			}
 		}
 	}
 
@@ -903,7 +909,7 @@ int main(int argc, char** argv)
 
 	//lab5(dir, "Descriptors_turn/0.jpg", "Descriptors_turn/30.jpg", "line.jpg", 1.2);
 
-	//cout << "FULL TIME : " << (clock() - start_time) / 1000.0 << "\n\n\n";
+	cout << "FULL TIME : " << (clock() - start_time) / 1000.0 << "\n\n\n";
 
 	return 0;
 }

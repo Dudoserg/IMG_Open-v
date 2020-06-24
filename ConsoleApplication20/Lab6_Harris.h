@@ -13,7 +13,7 @@ class Lab6_Harris
 {
 public:
 	IMG* img;
-	double LAB6_HARRIS_LEVEL = 0.02;
+	double LAB6_HARRIS_LEVEL = 0.007;
 	// полуразмер точки
 	int POINT_SIZE = 2;
 
