@@ -180,13 +180,21 @@
     <ClInclude Include="Descriptor.h" />
     <ClInclude Include="Descriptors.h" />
     <ClInclude Include="Descriptors_turn.h" />
+    <ClInclude Include="DoG_IMG.h" />
+    <ClInclude Include="ExWithCoordinate.h" />
     <ClInclude Include="Harris.h" />
     <ClInclude Include="HarrisPixel.h" />
     <ClInclude Include="IMG.h" />
     <ClInclude Include="InterestingPoint.h" />
+    <ClInclude Include="Lab6_Descriptors_turn.h" />
+    <ClInclude Include="Lab6_Harris.h" />
     <ClInclude Include="Moravec.h" />
     <ClInclude Include="Octava.h" />
     <ClInclude Include="Pyramid_IMG.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ConsoleApplication20.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

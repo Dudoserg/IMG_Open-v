@@ -2,11 +2,12 @@
 #define _USE_MATH_DEFINES
 
 #include "DEF.h"
+#include "ExWithCoordinate.h"
 //#include "Pixel.h"
 
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
-#include<opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include <windows.h>
 #include <string>
 #include <iostream>
@@ -114,7 +115,11 @@ public:
 
 	// Применить фильтр к изображению
 	IMG *cross_COLOR(vector<vector<double>> &matrix, double div, edgeEffect e);
+	IMG *cross_COLOR(vector<ExWithCoordinate*>* extremumList, int windowSize, vector<vector<double>> &matrix, double div, edgeEffect e);
+
+
 	IMG *cross_GRAY(vector<vector<double>> &matrix, double div, edgeEffect e);
+	IMG *cross_GRAY(vector<ExWithCoordinate*>* extremumList, int windowSize, vector<vector<double>> &matrix, double div, edgeEffect e);
 
 
 
@@ -127,14 +132,17 @@ public:
 
 
 	IMG * sobelDerivativeX(edgeEffect e);
+	IMG * sobelDerivativeX(vector<ExWithCoordinate*>* extremumList, int windowSize, edgeEffect e);
+
 	IMG * sobelDerivativeY(edgeEffect e);
+	IMG * sobelDerivativeY(vector<ExWithCoordinate*>* extremumList, int windowSize, edgeEffect e);
 
 	IMG * sobelGradient(IMG *pixelX, IMG *pixelY);
 
 	IMG * gaussFilter(double sigma);
 
 	IMG * gaussFilter_separable(double sigma);
-
+	IMG * gaussFilter_separable(vector<ExWithCoordinate*>* extremumList, int windowSize, double sigma);
 
 	Mat getImage() const;
 	void setImage(Mat value);
@@ -312,6 +320,35 @@ public:
 	}
 
 
+	static IMG* atan(vector<ExWithCoordinate*>* extremumList, int windowSize, IMG* imgX, IMG* imgY, int width, int height)
+	{
+		double* result_red = new double[width * height];
+		double* result_green = new double[width * height];
+		double* result_blue = new double[width * height];
+		double* result_gray = new double[width * height];
+
+		for (int extremum_index = 0; extremum_index < extremumList->size(); extremum_index++) {
+			ExWithCoordinate* extremum = extremumList->at(extremum_index);
+
+			for (int yy = -windowSize; yy < windowSize; yy++) {
+				for (int xx = -windowSize; xx < windowSize; xx++) {
+					int row = extremum->row + yy;
+					int col = extremum->col + xx;
+					{
+						int index = row * width + col;
+						double val_X = imgX->pixels_gray[index];
+						double val_Y = imgY->pixels_gray[index];
+
+						double sq = atan2(val_Y, val_X);
+
+						result_gray[index] = sq;
+					}
+				}
+			}
+		}
+		return new IMG(width, height, result_red, result_green, result_blue, result_gray);
+	}
+
 	static IMG* sobolGradient(IMG* imgX, IMG* imgY, int width, int height)
 	{
 		double* result_red = new double[width * height];
@@ -333,7 +370,34 @@ public:
 		return new IMG(width, height, result_red, result_green, result_blue, result_gray);
 	}
 
+	static IMG* sobolGradient(vector<ExWithCoordinate*>* extremumList, int windowSize, IMG* imgX, IMG* imgY, int width, int height)
+	{
+		double* result_red = new double[width * height];
+		double* result_green = new double[width * height];
+		double* result_blue = new double[width * height];
+		double* result_gray = new double[width * height];
 
+		for (int extremum_index = 0; extremum_index < extremumList->size(); extremum_index++) {
+			ExWithCoordinate* extremum = extremumList->at(extremum_index);
+
+			for (int yy = -windowSize; yy < windowSize; yy++) {
+				for (int xx = -windowSize; xx < windowSize; xx++) {
+					int row = extremum->row + yy;
+					int col = extremum->col + xx;
+					{
+						int index = row * width + col;
+						double val_X = imgX->pixels_gray[index];
+						double val_Y = imgY->pixels_gray[index];
+						double sq = sqrt(val_X * val_X + val_Y * val_Y);
+						//sq = qMax(qMin(sq, 255.0), 0.0);
+						result_gray[index] = sq;
+					}
+				}
+			}
+		}
+
+		return new IMG(width, height, result_red, result_green, result_blue, result_gray);
+	}
 
 	// Поме
 	void setMatToPixelsArray(Mat mat) {

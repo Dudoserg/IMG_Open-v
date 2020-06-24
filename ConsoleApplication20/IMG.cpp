@@ -12,6 +12,7 @@
 
 #include "IMG.h"
 #include "DEF.h"
+#include "ExWithCoordinate.h"
 
 using namespace std;
 using namespace cv;
@@ -222,6 +223,97 @@ IMG* IMG::cross_COLOR(vector<vector<double> >& matrix, double div, edgeEffect e)
 	return new IMG(this->width, this->height, result_red, result_green, result_blue, result_gray);
 }
 
+IMG* IMG::cross_COLOR(vector<ExWithCoordinate*>* extremumList, int windowSize, vector<vector<double> >& matrix, double div, edgeEffect e)
+{
+	//vector<Pixel*>* pixel = this->list;
+
+
+	//    Pixel **result =  new Pixel*[this->width * this->height];
+
+	//vector<Pixel*>* result = new vector<Pixel*>();
+
+
+	double* result_red = new double[this->height * this->width];
+	double* result_green = new double[this->height * this->width];
+	double* result_blue = new double[this->height * this->width];
+	double* result_gray = new double[this->height * this->width];
+
+	for (int i = 0; i < this->width * this->height; i++) {
+		result_red[i] = this->pixels_red[i];
+		result_green[i] = this->pixels_green[i];
+		result_blue[i] = this->pixels_blue[i];
+		result_gray[i] = this->pixels_gray[i];
+	}
+
+
+	for (int extremum_index = 0; extremum_index < extremumList->size(); extremum_index++) {
+		ExWithCoordinate* extremum = extremumList->at(extremum_index);
+
+		for (int yy = -windowSize; yy < windowSize; yy++) {
+			for (int xx = -windowSize; xx < windowSize; xx++) {
+				int row = extremum->row + yy;
+				int col = extremum->col + xx;
+				{
+					int ku = matrix.size() / 2;
+					int kv = matrix[0].size() / 2;
+					double sum_GRAY = 0.0;
+					double value_GRAY = 0.0;
+
+					double sum_RED = 0.0;
+					double value_RED = 0.0;
+
+					double sum_GREEN = 0.0;
+					double value_GREEN = 0.0;
+
+					double sum_BLUE = 0.0;
+					double value_BLUE = 0.0;
+
+					for (int u = -ku; u <= ku; u++) {
+						for (int v = -kv; v <= kv; v++) {
+							int x = row - u;
+							int y = col - v;
+
+							if (x < 0 || y < 0 || x >= this->height || y >= this->width) {
+
+								if (x < 0)
+									x = x + this->height;
+								else if (x >= this->height)
+									x = x - this->height;
+
+								if (y < 0)
+									y = y + this->width;
+								else if (y >= this->width)
+									y = y - this->width;
+
+							}
+							value_RED = this->pixels_red[x * this->width + y];
+							value_GREEN = this->pixels_green[x * this->width + y];
+							value_BLUE = this->pixels_blue[x * this->width + y];
+							value_GRAY = this->pixels_gray[x * this->width + y];
+
+							sum_RED += matrix[u + ku][v + kv] * value_RED;
+							sum_GREEN += matrix[u + ku][v + kv] * value_GREEN;
+							sum_BLUE += matrix[u + ku][v + kv] * value_BLUE;
+							sum_GRAY += matrix[u + ku][v + kv] * value_GRAY;
+						}
+					}
+					sum_RED *= div;
+					sum_GREEN *= div;
+					sum_BLUE *= div;
+					sum_GRAY *= div;
+					result_red[row * this->width + col] = sum_RED;
+					result_green[row * this->width + col] = sum_GREEN;
+					result_blue[row * this->width + col] = sum_BLUE;
+					result_gray[row * this->width + col] = sum_GRAY;
+				}
+			}
+		}
+	}
+
+
+	return new IMG(this->width, this->height, result_red, result_green, result_blue, result_gray);
+}
+
 /**
  * @brief IMG::cross
  * @param pixel исходный массив пикселей
@@ -297,7 +389,72 @@ IMG* IMG::cross_GRAY(vector<vector<double> >& matrix, double div, edgeEffect e)
 	return new IMG(this->width, this->height, result_red, result_green, result_blue, result_gray);
 }
 
+IMG* IMG::cross_GRAY(vector<ExWithCoordinate*>* extremumList, int windowSize, vector<vector<double> >& matrix, double div, edgeEffect e)
+{
+	double* result_red = new double[this->height * this->width];
+	double* result_green = new double[this->height * this->width];
+	double* result_blue = new double[this->height * this->width];
+	double* result_gray = new double[this->height * this->width];
 
+	for (int i = 0; i < this->width * this->height; i++) {
+		result_red[i] = this->pixels_red[i];
+		result_green[i] = this->pixels_green[i];
+		result_blue[i] = this->pixels_blue[i];
+		result_gray[i] = this->pixels_gray[i];
+	}
+
+	for (int extremum_index = 0; extremum_index < extremumList->size(); extremum_index++) {
+		ExWithCoordinate* extremum = extremumList->at(extremum_index);
+
+		for (int yy = -windowSize; yy < windowSize; yy++) {
+			for (int xx = -windowSize; xx < windowSize; xx++) {
+				int row = extremum->row + yy;
+				int col = extremum->col + xx;
+				{
+					int ku = matrix.size() / 2;
+					int kv = matrix[0].size() / 2;
+					double sum_GRAY = 0.0;
+					double value_GRAY = 0.0;
+
+					for (int u = -ku; u <= ku; u++) {
+						for (int v = -kv; v <= kv; v++) {
+							int x = row - u;
+							int y = col - v;
+
+
+							if (x < 0 || y < 0 || x >= this->height || y >= this->width) {
+
+								if (x < 0)
+									x = x + this->height;
+								else if (x >= this->height)
+									x = x - this->height;
+
+								if (y < 0)
+									y = y + this->width;
+								else if (y >= this->width)
+									y = y - this->width;
+
+
+
+							}
+
+							value_GRAY = this->pixels_gray[x * this->width + y];
+
+
+							sum_GRAY += matrix[u + ku][v + kv] * value_GRAY;
+						}
+					}
+
+					sum_GRAY *= div;
+					result_gray[row * this->width + col] = sum_GRAY;
+				}
+			}
+		}
+	}
+
+
+	return new IMG(this->width, this->height, result_red, result_green, result_blue, result_gray);
+}
 
 IMG* IMG::normalize_COLOR()
 {
@@ -428,6 +585,33 @@ IMG* IMG::sobelDerivativeX(edgeEffect e)
 	cout << "sobelDerivativeX : " << (clock() - start_time) / 1000.0 << "\n";
 	return result_X;
 }
+
+IMG* IMG::sobelDerivativeX(vector<ExWithCoordinate*>* extremumList, int windowSize, edgeEffect e)
+{
+	unsigned int start_time = clock();
+	vector<vector<double>> matrix_sobolX({
+		vector<double>({1, 0, -1}),
+		vector<double>({2, 0, -2}),
+		vector<double>({1, 0, -1})
+		});
+
+	//    Pixel **result_X = this->cross(pixel, matrix_sobolX, 1.0, e);
+	IMG* result_X = this->cross_GRAY(extremumList, windowSize, matrix_sobolX, 1.0, e);
+	//this->normalize(result_X);
+	cout << "sobelDerivativeX : " << (clock() - start_time) / 1000.0 << "\n";
+	return result_X;
+}
+
+
+
+
+
+
+
+
+
+
+
 /**
  * @brief IMG::sobelDerivativeY Оператор собеля по X
  * @param pixel массив пикселей
@@ -444,6 +628,21 @@ IMG* IMG::sobelDerivativeY(IMG::edgeEffect e)
 		});
 	//    Pixel **result_Y = this->cross(pixel, matrix_sobolY, 1.0, e);
 	IMG* result_Y = this->cross_GRAY(matrix_sobolY, 1.0, e);
+	//this->normalize(result_Y);
+	cout << "sobelDerivativeY : " << (clock() - start_time) / 1000.0 << "\n";
+	return result_Y;
+}
+
+IMG* IMG::sobelDerivativeY(vector<ExWithCoordinate*>* extremumList, int windowSize, IMG::edgeEffect e)
+{
+	unsigned int start_time = clock();
+	vector<vector<double>> matrix_sobolY({
+		vector<double>({1, 2, 1}),
+		vector<double>({0, 0, 0}),
+		vector<double>({-1, -2, -1})
+		});
+	//    Pixel **result_Y = this->cross(pixel, matrix_sobolY, 1.0, e);
+	IMG* result_Y = this->cross_GRAY(extremumList, windowSize,  matrix_sobolY, 1.0, e);
 	//this->normalize(result_Y);
 	cout << "sobelDerivativeY : " << (clock() - start_time) / 1000.0 << "\n";
 	return result_Y;
@@ -573,7 +772,51 @@ IMG* IMG::gaussFilter_separable(double sigma)
 	return gauss_result_col;
 }
 
+IMG* IMG::gaussFilter_separable(vector<ExWithCoordinate*>* extremumList, int windowSize, double sigma)
+{
+	vector<vector<double>> matrix_gauss;
+	unsigned int start_time = clock();
 
+	int size = (int)(3 * sigma);
+	int halfSize = size / 2;
+	double ss2 = 2 * sigma * sigma;
+	double firstDrob = 1.0 / (M_PI * ss2);
+
+	// Инициализируем первую строку фильтра
+	vector<double> tmp;
+	for (int x = -halfSize; x <= halfSize; x++) {
+		double gauss = firstDrob * exp(-(x * x) / ss2);
+		tmp.push_back(gauss);
+
+	}
+	matrix_gauss.push_back(tmp);
+
+
+	//    Pixel **gauss_result_row;
+	IMG* gauss_result_row;
+	gauss_result_row = this->cross_COLOR(extremumList, windowSize, matrix_gauss, 1.0, IMG::edgeEffect::BLACK);
+
+
+	// Инициализируем первый столбец фильтра
+
+	// TODO почистить память matrix_gauss
+	matrix_gauss.clear();
+	for (int y = -halfSize; y <= halfSize; y++) {
+		double gauss = firstDrob * exp(-(y * y) / ss2);
+		vector<double> tmp;  // один элемент в строке
+		tmp.push_back(gauss);
+		matrix_gauss.push_back(tmp);
+	}
+	//    Pixel **gauss_result_col;
+	IMG* gauss_result_col;
+	gauss_result_col = gauss_result_row->cross_COLOR(extremumList, windowSize, matrix_gauss, 1.0, IMG::edgeEffect::BLACK);
+
+	// TODO
+	//this->deletePixels(gauss_result_row);
+
+	cout << "gaussFilter : " << (clock() - start_time) / 1000.0 << "\n";
+	return gauss_result_col;
+}
 
 
 Mat IMG::createImage_GRAY()

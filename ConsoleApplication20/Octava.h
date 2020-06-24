@@ -1,5 +1,6 @@
 #pragma once
 #include "Pyramid_IMG.h"
+#include "DoG_IMG.h"
 
 #include <iostream>
 #include <vector>
@@ -12,6 +13,7 @@ class Octava
 {
 public:
 	vector<Pyramid_IMG*> *images;
+	vector<DoG_IMG*>* dog = new vector<DoG_IMG*>;
 
 	Octava() {
 		this->images = new vector<Pyramid_IMG*>();

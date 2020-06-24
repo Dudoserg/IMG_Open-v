@@ -11,15 +11,22 @@ public:
 
 	int variant = 0;
 
-	double A;
-	double B;
-	double C;
-	double L_min;
-	double L_max;
+	double A = INT_MIN;
+	double B = INT_MIN;
+	double C = INT_MIN;
+	double L_min = INT_MIN;
+	double L_max = INT_MIN;
 	bool isActive = true;
-	int row;
-	int col;
+	int row = INT_MIN;
+	int col = INT_MIN;
 	double _k = 0.05;
+
+	double getL_min() {
+		return L_min;
+	}
+	void setL_min(double l_min) {
+		L_min = l_min;
+	}
 
 	HarrisPixel(int row, int col, double a, double b, double c) {
 		A = a;
