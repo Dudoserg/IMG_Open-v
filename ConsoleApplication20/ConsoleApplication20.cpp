@@ -431,7 +431,7 @@ vector<double>* findMaxMin(IMG* img, int r, int c, boolean isCheckCenter) {
 
 vector<Octava*>* Lab6Calculate(IMG* img_first, int octav) {
 
-	double EXTREMUM_LEVEL = 0.03;
+	double EXTREMUM_LEVEL = 0.02;
 
 	vector<Octava*>* octavas_first = testOctavi(img_first, "C:/_img/Lab6/result", 0.5, 1.6, octav, 5);
 
@@ -659,8 +659,8 @@ vector<Octava*>* Lab6Calculate(IMG* img_first, int octav) {
 
 void Lab6() {
 	String dir = "C:/_img/Lab6";
-	String firstPath = dir + "/" + "bridge_1.jpg";
-	String secondPath = dir + "/" + "bridge_2.jpg";
+	String firstPath = dir + "/" + "butterfly.jpg";
+	String secondPath = dir + "/" + "butterfly(0.3).jpg";
 
 	//        String dir = "images_source/Lab6";
 	//        String firstPath = "images_source" + "/" + "lenka_turn.jpg";
