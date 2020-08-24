@@ -29,7 +29,7 @@
 using namespace std;
 using namespace cv;
 
-double EXTREMUM_LEVEL = 0.008;
+double EXTREMUM_LEVEL = 0.01;
 
 bool SAVEDOG = false;
 
@@ -437,16 +437,14 @@ vector<Octava*>* Lab6Calculate(IMG* img_first, int octav) {
 
 	
 
-	vector<Octava*>* octavas_first = testOctavi(img_first, "C:/_img/Lab6/result", 0.5, 1.6, octav, 5);
+	vector<Octava*>* octavas_first = testOctavi(img_first, "C:/_img/Lab6/result", 0.5, 1.6, 4, 5);
 
 	for (int octavas_first_index = 0; octavas_first_index < octavas_first->size(); octavas_first_index++) {
 		Octava* octava = octavas_first->at(octavas_first_index);
 
 		for (int i = 0; i < octava->images->size() - 1; i++) {
 			Pyramid_IMG* pyramid_first = octava->images->at(i);
-			//                pyramid_first.img = pyramid_first.img.normalize_COLOR();
 			Pyramid_IMG* pyramid_second = octava->images->at(i + 1);
-			//                pyramid_second.img = pyramid_second.img.normalize_COLOR();
 
 			IMG* result = pyramid_first->img->copy();
 			for (int row = 0; row < pyramid_first->img->height; row++) {
@@ -663,8 +661,8 @@ vector<Octava*>* Lab6Calculate(IMG* img_first, int octav) {
 
 void Lab6() {
 	String dir = "C:/_img/Lab6";
-	String firstPath = dir + "/" + "bridge_1.jpg";
-	String secondPath = dir + "/" + "bridge_2.jpg";
+	String firstPath = dir + "/" + "Moscow.jpg";
+	String secondPath = dir + "/" + "Moscow2.jpg";
 
 	//        String dir = "images_source/Lab6";
 	//        String firstPath = "images_source" + "/" + "lenka_turn.jpg";
@@ -889,6 +887,87 @@ void Lab6() {
 
 }
 
+IMG* drawCircle(IMG* img, vector<pair<int, int>*>* badPixels) {
+	////////////////////////////////////////////////////////////////////////////////////////////
+	IMG* img_forDraw = img->copy();
+	// Ïîëó÷àåì îáúåêò - èçîáðàæåíèå
+	Mat tmp_image = img_forDraw->createImage_COLOR();
+
+	for (int i = 0; i < badPixels->size(); i++) {
+		pair<int, int>* current = badPixels->at(i);
+
+		int row = current->first;
+		int col = current->second;
+
+
+		circle(tmp_image, cvPoint(col, row), 50, CV_RGB(255, 0, 0), 7, 8);
+
+
+	}
+	img_forDraw->setMatToPixelsArray(tmp_image);
+
+
+	return img_forDraw;
+}
+
+int checkPhoto(String dir, String fileName, String resultFileName) {
+	String path = dir + "/" + fileName;
+
+	IMG* img = new IMG(path);
+
+	double avgRed = 0.0;
+	double avgGreen = 0.0;
+	double avgBlue = 0.0;
+	int count = 0;
+	// find avg
+	for (int col = 0; col < img->width; col++) {
+		for (int row = 0; row < img->height; row++) {
+
+			double red = img->getRedWithEdge(row, col);
+			double green = img->getGreenWithEdge(row, col);
+			double blue = img->getBlueWithEdge(row, col);
+			
+			count++;
+
+			avgRed += red;
+			avgGreen += green;
+			avgBlue += blue;
+
+		}
+	}
+	avgRed = avgRed / count;
+	avgGreen = avgGreen / count;
+	avgBlue = avgBlue / count;
+
+	cout << "avgRed = " << avgRed  << endl;
+	cout << "avgGreen = " << avgGreen  << endl;
+	cout << "avgBlue = " << avgBlue  << endl;
+
+	// find Bad pixels
+	double e = 0.15;
+
+	vector<pair<int, int>*>* badPixels = new vector<pair<int, int>*>;
+
+	for (int col = 0; col < img->width; col++) {
+		for (int row = 0; row < img->height; row++) {
+
+			double red = img->getRedWithEdge(row, col);
+			double green = img->getGreenWithEdge(row, col);
+			double blue = img->getBlueWithEdge(row, col);
+
+			if ( abs(avgRed - red) > e || abs(avgGreen - green) > e || abs(avgBlue - blue) > e) {
+				// ошибочка, запомним пиксель
+				badPixels->push_back(new pair<int, int>(row, col));
+			}
+		}
+	}
+	cout << "count bad pixels = " << badPixels->size() << endl;
+	IMG* result = drawCircle(img, badPixels);
+	IMG* result_normalized = result->normalize_COLOR();
+	result_normalized->saveImage_COLOR(resultFileName, dir);
+
+	return 0;
+}
 
 
 
@@ -900,7 +979,11 @@ int main(int argc, char** argv)
 	unsigned int start_time = clock();
 	double test = cos(360);
 
-	Lab6();
+	checkPhoto("C:/Users/Dudoserg/Desktop/check", "test.png", "test(+).png");
+
+	checkPhoto("C:/Users/Dudoserg/Desktop/check", "pixel_good.jpg", "pixel_good(+).jpg");
+	checkPhoto("C:/Users/Dudoserg/Desktop/check", "pixel_bad.jpg", "pixel_bad(+).jpg");
+	//Lab6();
 	//string dir = "C:/_img/";
 	//String _1 = "lenka_1.jpg";
 	//String _2 = "lenka_2(2).jpg";
